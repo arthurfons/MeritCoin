@@ -1,0 +1,134 @@
+// MER — Sistema de Moeda Estudantil (Sprint 2)
+// ORM: Prisma | Dev: SQLite | Produção alvo: PostgreSQL (trocar provider + DATABASE_URL)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Instituicao {
+  id          Int         @id @default(autoincrement())
+  nome        String      @unique
+  cursos      Curso[]
+  alunos      Aluno[]
+  professores Professor[]
+}
+
+model Curso {
+  id            Int         @id @default(autoincrement())
+  nome          String
+  instituicaoId Int
+  instituicao   Instituicao @relation(fields: [instituicaoId], references: [id])
+  alunos        Aluno[]
+
+  @@unique([nome, instituicaoId])
+}
+
+model Aluno {
+  id            Int      @id @default(autoincrement())
+  nome          String
+  email         String   @unique
+  cpf           String   @unique
+  rg            String
+  login         String   @unique
+  senhaHash     String
+  saldoMoedas   Float    @default(0)
+  logradouro    String
+  numero        String
+  complemento   String?
+  bairro        String
+  cidade        String
+  estado        String
+  cep           String
+  instituicaoId Int
+  cursoId       Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  instituicao Instituicao      @relation(fields: [instituicaoId], references: [id])
+  curso       Curso            @relation(fields: [cursoId], references: [id])
+  transacoes  TransacaoMoeda[]
+  resgates    Resgate[]
+}
+
+model EmpresaParceira {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  cnpj      String   @unique
+  email     String   @unique
+  login     String   @unique
+  senhaHash String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vantagens Vantagem[]
+}
+
+model Professor {
+  id            Int      @id @default(autoincrement())
+  nome          String
+  cpf           String   @unique
+  departamento  String
+  login         String   @unique
+  senhaHash     String
+  saldoMoedas   Float    @default(0)
+  instituicaoId Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  instituicao Instituicao        @relation(fields: [instituicaoId], references: [id])
+  transacoes  TransacaoMoeda[]
+  creditos    CreditoSemestral[]
+}
+
+model Vantagem {
+  id          Int      @id @default(autoincrement())
+  descricao   String
+  fotoUrl     String
+  custoMoedas Float
+  ativa       Boolean  @default(true)
+  empresaId   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  empresa  EmpresaParceira @relation(fields: [empresaId], references: [id])
+  resgates Resgate[]
+}
+
+model TransacaoMoeda {
+  id          Int      @id @default(autoincrement())
+  valor       Float
+  mensagem    String
+  dataHora    DateTime @default(now())
+  professorId Int
+  alunoId     Int
+
+  professor Professor @relation(fields: [professorId], references: [id])
+  aluno     Aluno     @relation(fields: [alunoId], references: [id])
+}
+
+model Resgate {
+  id            Int      @id @default(autoincrement())
+  codigoCupom   String   @unique
+  valorDebitado Float
+  dataHora      DateTime @default(now())
+  alunoId       Int
+  vantagemId    Int
+
+  aluno    Aluno    @relation(fields: [alunoId], references: [id])
+  vantagem Vantagem @relation(fields: [vantagemId], references: [id])
+}
+
+model CreditoSemestral {
+  id          Int      @id @default(autoincrement())
+  semestre    String
+  valor       Float
+  dataCredito DateTime @default(now())
+  professorId Int
+
+  professor Professor @relation(fields: [professorId], references: [id])
+}

@@ -1,0 +1,121 @@
+@startuml MER_Moeda_Estudantil
+!theme plain
+title Sistema de Moeda Estudantil — MER (Sprint 2)
+hide circle
+skinparam linetype ortho
+
+entity "INSTITUICAO" as inst {
+  * id : INT <<PK>>
+  --
+  * nome : VARCHAR <<UK>>
+}
+
+entity "CURSO" as curso {
+  * id : INT <<PK>>
+  --
+  * nome : VARCHAR
+  * instituicaoId : INT <<FK>>
+}
+
+entity "ALUNO" as aluno {
+  * id : INT <<PK>>
+  --
+  * nome : VARCHAR
+  * email : VARCHAR <<UK>>
+  * cpf : VARCHAR <<UK>>
+  * rg : VARCHAR
+  * login : VARCHAR <<UK>>
+  * senhaHash : VARCHAR
+  * saldoMoedas : REAL
+  * logradouro : VARCHAR
+  * numero : VARCHAR
+  complemento : VARCHAR
+  * bairro : VARCHAR
+  * cidade : VARCHAR
+  * estado : VARCHAR
+  * cep : VARCHAR
+  * instituicaoId : INT <<FK>>
+  * cursoId : INT <<FK>>
+}
+
+entity "EMPRESA_PARCEIRA" as emp {
+  * id : INT <<PK>>
+  --
+  * nome : VARCHAR
+  * cnpj : VARCHAR <<UK>>
+  * email : VARCHAR <<UK>>
+  * login : VARCHAR <<UK>>
+  * senhaHash : VARCHAR
+}
+
+entity "PROFESSOR" as prof {
+  * id : INT <<PK>>
+  --
+  * nome : VARCHAR
+  * cpf : VARCHAR <<UK>>
+  * departamento : VARCHAR
+  * login : VARCHAR <<UK>>
+  * senhaHash : VARCHAR
+  * saldoMoedas : REAL
+  * instituicaoId : INT <<FK>>
+}
+
+entity "VANTAGEM" as vant {
+  * id : INT <<PK>>
+  --
+  * descricao : VARCHAR
+  * fotoUrl : VARCHAR
+  * custoMoedas : REAL
+  * ativa : BOOLEAN
+  * empresaId : INT <<FK>>
+}
+
+entity "TRANSACAO_MOEDA" as tx {
+  * id : INT <<PK>>
+  --
+  * valor : REAL
+  * mensagem : VARCHAR
+  * dataHora : DATETIME
+  * professorId : INT <<FK>>
+  * alunoId : INT <<FK>>
+}
+
+entity "RESGATE" as res {
+  * id : INT <<PK>>
+  --
+  * codigoCupom : VARCHAR <<UK>>
+  * valorDebitado : REAL
+  * dataHora : DATETIME
+  * alunoId : INT <<FK>>
+  * vantagemId : INT <<FK>>
+}
+
+entity "CREDITO_SEMESTRAL" as cred {
+  * id : INT <<PK>>
+  --
+  * semestre : VARCHAR
+  * valor : REAL
+  * dataCredito : DATETIME
+  * professorId : INT <<FK>>
+}
+
+inst ||--o{ curso
+inst ||--o{ aluno
+inst ||--o{ prof
+curso ||--o{ aluno
+emp ||--o{ vant
+prof ||--o{ tx
+aluno ||--o{ tx
+aluno ||--o{ res
+vant ||--o{ res
+prof ||--o{ cred
+
+note bottom of aluno
+  CRUD completo — Sprint 2
+end note
+
+note bottom of emp
+  CRUD completo — Sprint 2
+end note
+
+@enduml

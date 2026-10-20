@@ -1,0 +1,88 @@
+@startuml Diagrama_Componentes_Moeda_Estudantil
+!theme plain
+title Sistema de Moeda Estudantil — Diagrama de Componentes (MVC)
+skinparam componentStyle rectangle
+
+actor "Usuário\n(Aluno / Professor / Empresa)" as User
+
+package "Camada de Apresentação (View)" {
+  [Views Aluno] as VAluno
+  [Views Professor] as VProfessor
+  [Views Empresa] as VEmpresa
+  [Views Autenticação] as VAuth
+}
+
+package "Camada de Controle (Controller)" {
+  [AuthController] as CAuth
+  [AlunoController] as CAluno
+  [ProfessorController] as CProfessor
+  [EmpresaController] as CEmpresa
+  [VantagemController] as CVantagem
+  [ResgateController] as CResgate
+  [ExtratoController] as CExtrato
+}
+
+package "Camada de Negócio (Model)" {
+  [ServicoAutenticacao] as SAuth
+  [ServicoMoeda] as SMoeda
+  [ServicoResgate] as SResgate
+  [ServicoNotificacao] as SNotif
+  [Entidades de Domínio] as Dominio
+}
+
+package "Camada de Persistência" {
+  [DAO / Repositórios ORM] as DAO
+  database "Banco de Dados\nRelacional" as BD
+}
+
+cloud "Serviços Externos" {
+  [Servidor SMTP\n(E-mail)] as Email
+}
+
+User --> VAluno
+User --> VProfessor
+User --> VEmpresa
+User --> VAuth
+
+VAuth --> CAuth
+VAluno --> CAluno
+VAluno --> CResgate
+VAluno --> CExtrato
+VProfessor --> CProfessor
+VProfessor --> CExtrato
+VEmpresa --> CEmpresa
+VEmpresa --> CVantagem
+
+CAuth --> SAuth
+CAluno --> Dominio
+CEmpresa --> Dominio
+CVantagem --> Dominio
+CProfessor --> SMoeda
+CResgate --> SResgate
+CExtrato --> SMoeda
+CExtrato --> SResgate
+
+SAuth --> Dominio
+SMoeda --> Dominio
+SResgate --> Dominio
+SMoeda --> SNotif
+SResgate --> SNotif
+
+SAuth --> DAO
+SMoeda --> DAO
+SResgate --> DAO
+Dominio --> DAO
+DAO --> BD
+SNotif --> Email
+
+note bottom of DAO
+  Estratégia (ORM ou DAO)
+  definida na Sprint 2
+end note
+
+note right of SNotif
+  UC12: e-mail ao aluno (recebimento)
+  UC13: e-mails aluno + empresa (resgate)
+end note
+
+@enduml

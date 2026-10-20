@@ -1,0 +1,27 @@
+# IDE / SO
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Build / deps
+target/
+build/
+node_modules/
+dist/
+*.class
+*.jar
+.env
+.env.local
+*.log
+*.db
+*.db-journal
+
+# Temporários da geração de PDF / PlantUML
+docs/sprint1/_tmp_diagramas/
+docs/sprint1/diagramas/*.png
+docs/sprint2/_tmp_diagramas/
+
+# Frontend
+frontend/dist/

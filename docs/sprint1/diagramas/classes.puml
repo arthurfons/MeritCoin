@@ -1,0 +1,152 @@
+@startuml Diagrama_Classes_Moeda_Estudantil
+!theme plain
+title Sistema de Moeda Estudantil — Diagrama de Classes (Domínio MVC)
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+abstract class Usuario {
+  - id: Long
+  - login: String
+  - senha: String
+  - email: String
+  --
+  + autenticar(login: String, senha: String): boolean
+}
+
+class Aluno {
+  - nome: String
+  - cpf: String
+  - rg: String
+  - saldoMoedas: Double
+  --
+  + resgatarVantagem(v: Vantagem): Resgate
+  + consultarExtrato(): List
+}
+
+class Professor {
+  - nome: String
+  - cpf: String
+  - departamento: String
+  - saldoMoedas: Double
+  --
+  + enviarMoedas(a: Aluno, valor: Double, mensagem: String): TransacaoMoeda
+  + consultarExtrato(): List
+  + receberCreditoSemestral(valor: Double): void
+}
+
+class EmpresaParceira {
+  - nome: String
+  - cnpj: String
+  --
+  + cadastrarVantagem(descricao: String, fotoUrl: String, custo: Double): Vantagem
+  + atualizarVantagem(v: Vantagem): void
+  + removerVantagem(v: Vantagem): void
+}
+
+class Endereco {
+  - logradouro: String
+  - numero: String
+  - complemento: String
+  - bairro: String
+  - cidade: String
+  - estado: String
+  - cep: String
+}
+
+class InstituicaoEnsino {
+  - id: Long
+  - nome: String
+}
+
+class Curso {
+  - id: Long
+  - nome: String
+}
+
+class Vantagem {
+  - id: Long
+  - descricao: String
+  - fotoUrl: String
+  - custoMoedas: Double
+  - ativa: boolean
+}
+
+class TransacaoMoeda {
+  - id: Long
+  - valor: Double
+  - mensagem: String
+  - dataHora: LocalDateTime
+}
+
+class Resgate {
+  - id: Long
+  - codigoCupom: String
+  - dataHora: LocalDateTime
+  - valorDebitado: Double
+}
+
+class CreditoSemestral {
+  - id: Long
+  - semestre: String
+  - valor: Double
+  - dataCredito: LocalDateTime
+}
+
+class ServicoAutenticacao {
+  + login(login: String, senha: String): Usuario
+  + logout(): void
+}
+
+class ServicoMoeda {
+  + enviarMoedas(p: Professor, a: Aluno, valor: Double, msg: String): TransacaoMoeda
+  + creditarSemestre(p: Professor, valor: Double): CreditoSemestral
+}
+
+class ServicoResgate {
+  + resgatar(a: Aluno, v: Vantagem): Resgate
+  + gerarCodigoCupom(): String
+}
+
+class ServicoNotificacao {
+  + notificarRecebimento(a: Aluno, t: TransacaoMoeda): void
+  + notificarResgateAluno(a: Aluno, r: Resgate): void
+  + notificarResgateEmpresa(e: EmpresaParceira, r: Resgate): void
+}
+
+Usuario <|-- Aluno
+Usuario <|-- Professor
+Usuario <|-- EmpresaParceira
+
+Aluno "1" --> "1" Endereco : possui
+Aluno "*" --> "1" InstituicaoEnsino : estuda_em
+Aluno "*" --> "1" Curso : cursa
+Professor "*" --> "1" InstituicaoEnsino : vinculado_a
+EmpresaParceira "1" --> "*" Vantagem : oferece
+
+TransacaoMoeda "*" --> "1" Professor : enviada_por
+TransacaoMoeda "*" --> "1" Aluno : recebida_por
+Resgate "*" --> "1" Aluno : realizado_por
+Resgate "*" --> "1" Vantagem : referente_a
+CreditoSemestral "*" --> "1" Professor : creditado_a
+
+ServicoAutenticacao ..> Usuario
+ServicoMoeda ..> Professor
+ServicoMoeda ..> Aluno
+ServicoMoeda ..> TransacaoMoeda
+ServicoMoeda ..> ServicoNotificacao
+ServicoResgate ..> Aluno
+ServicoResgate ..> Vantagem
+ServicoResgate ..> Resgate
+ServicoResgate ..> ServicoNotificacao
+
+note right of ServicoMoeda
+  Valida saldo do professor
+  e mensagem obrigatória
+end note
+
+note right of ServicoResgate
+  Valida saldo do aluno,
+  debita moedas e gera cupom
+end note
+
+@enduml

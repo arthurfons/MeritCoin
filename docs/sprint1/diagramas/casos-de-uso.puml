@@ -1,0 +1,74 @@
+@startuml Diagrama_Casos_de_Uso_Moeda_Estudantil
+!theme plain
+title Sistema de Moeda Estudantil — Diagrama de Casos de Uso
+left to right direction
+
+actor "Aluno" as Aluno
+actor "Professor" as Professor
+actor "Empresa Parceira" as Empresa
+actor "Sistema" as Sistema
+
+rectangle "Sistema de Moeda Estudantil" {
+
+  usecase "UC01 Cadastrar Aluno" as UC01
+  usecase "UC02 Cadastrar Empresa Parceira" as UC02
+  usecase "UC03 Autenticar Usuário" as UC03
+  usecase "UC04 Pré-cadastrar Professor" as UC04
+  usecase "UC05 Creditar Moedas Semestrais" as UC05
+  usecase "UC06 Enviar Moedas ao Aluno" as UC06
+  usecase "UC07 Consultar Extrato Professor" as UC07
+  usecase "UC08 Cadastrar Vantagem" as UC08
+  usecase "UC09 Gerenciar Vantagens" as UC09
+  usecase "UC10 Resgatar Vantagem" as UC10
+  usecase "UC11 Consultar Extrato Aluno" as UC11
+  usecase "UC12 Notificar Recebimento" as UC12
+  usecase "UC13 Notificar Resgate" as UC13
+}
+
+Aluno --> UC01
+Aluno --> UC03
+Aluno --> UC10
+Aluno --> UC11
+
+Professor --> UC03
+Professor --> UC06
+Professor --> UC07
+
+Empresa --> UC02
+Empresa --> UC03
+Empresa --> UC08
+Empresa --> UC09
+
+Sistema --> UC04
+Sistema --> UC05
+Sistema --> UC12
+Sistema --> UC13
+
+UC06 ..> UC03 : <<include>>
+UC07 ..> UC03 : <<include>>
+UC08 ..> UC03 : <<include>>
+UC09 ..> UC03 : <<include>>
+UC10 ..> UC03 : <<include>>
+UC11 ..> UC03 : <<include>>
+
+UC06 ..> UC12 : <<include>>
+UC10 ..> UC13 : <<include>>
+
+note right of UC06
+  Pré-condições:
+  - saldo suficiente
+  - mensagem obrigatória
+end note
+
+note right of UC10
+  Pré-condições:
+  - saldo >= custo
+  - gera cupom/código
+end note
+
+note bottom of UC05
+  +1000 moedas/semestre
+  saldo acumulável
+end note
+
+@enduml
