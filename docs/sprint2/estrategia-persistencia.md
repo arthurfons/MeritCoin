@@ -1,58 +1,45 @@
-# Estratégia de Persistência
+# Estratégia de Persistência — Sprint 2
 
 ## Decisão
 
-Adotamos o **padrão ORM** com **Prisma**, integrado ao backend **NestJS**.
-
 | Aspecto | Escolha |
 |---------|---------|
-| Padrão | ORM (Object-Relational Mapping) |
-| Ferramenta | Prisma |
-| Acesso no NestJS | `PrismaService` (injetável) + repositórios via services |
-| Banco (desenvolvimento) | SQLite — zero instalação, ideal para validação em aula |
-| Banco (produção / alvo) | PostgreSQL — mesmo `schema.prisma`, só altera `provider` e `DATABASE_URL` |
+| Padrão | ORM |
+| Ferramenta | **Prisma** |
+| Banco | **PostgreSQL** |
+| Migrações | Prisma Migrate (versionadas em `prisma/migrations`) |
+| Acesso no NestJS | `PrismaService` global (`PrismaModule`) |
+| Dev sem Docker | script `scripts/start-embedded-pg.mjs` (PostgreSQL embutido) |
+| Dev com Docker | `docker compose up -d` |
 
-## Por que ORM (Prisma) e não DAO manual?
+## Por que Prisma + PostgreSQL
 
-1. Alinha o MER ao código via `schema.prisma` (fonte única da verdade).
-2. Migrations versionadas (`prisma migrate`).
-3. Tipagem TypeScript gerada automaticamente (menos erro nos CRUDs).
-4. Troca SQLite ↔ PostgreSQL sem reescrever SQL.
-5. Encaixa na camada de Persistência do diagrama de componentes (Sprint 1).
+1. Atende ao enunciado (ORM + PostgreSQL).
+2. Schema tipado alinhado ao MER.
+3. Migrações auditáveis no Git.
+4. Transações nativas (base para Sprint 3: transferências/resgates).
+5. Seed idempotente para demonstração em aula.
 
-## Mapeamento MVC ↔ persistência
-
-```
-View (React)  →  Controller (NestJS Controller)
-                     ↓
-                 Service (regras / validação)
-                     ↓
-              PrismaService (ORM)
-                     ↓
-                  Banco (SQLite/PostgreSQL)
-```
-
-O `PrismaService` ocupa o papel da camada de persistência (equivalente a DAOs/repositórios), mantendo Controllers e Services livres de SQL.
-
-## Estrutura no repositório
+## Camadas (MVC)
 
 ```
-backend/
-  prisma/
-    schema.prisma      ← MER implementado
-    seed.ts            ← instituições e cursos pré-cadastrados
-  src/
-    prisma/            ← PrismaModule + PrismaService
-    aluno/             ← CRUD Aluno
-    empresa/           ← CRUD Empresa Parceira
-    instituicao/       ← listagens auxiliares
+React (View)
+  → Controllers NestJS (/api/v1)
+    → Services (regras + autorização)
+      → PrismaService (persistência)
+        → PostgreSQL
 ```
 
-## Operações CRUD (Sprint 2)
+## Modelo de identidade
 
-| Recurso | Create | Read | Update | Delete |
-|---------|--------|------|--------|--------|
-| Aluno | POST `/alunos` | GET `/alunos`, GET `/alunos/:id` | PATCH `/alunos/:id` | DELETE `/alunos/:id` |
-| Empresa | POST `/empresas` | GET `/empresas`, GET `/empresas/:id` | PATCH `/empresas/:id` | DELETE `/empresas/:id` |
+- `User`: autenticação (e-mail, hash bcrypt, role, active)
+- `StudentProfile` / `TeacherProfile` / `CompanyProfile`: dados de domínio
+- Instituições, cursos e departamentos pré-cadastrados no seed
+- Professor **não** se auto-cadastra pelo formulário público
 
-Senhas são armazenadas apenas como **hash** (bcrypt), nunca em texto puro.
+## Segurança na persistência
+
+- Senha apenas como `passwordHash` (bcrypt)
+- Respostas da API sem hash
+- Soft-deactivate via `User.active = false`
+- Saldo em `Int` (moedas inteiras)

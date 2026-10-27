@@ -1,37 +1,25 @@
-:root {
-  --bg: #f3f1eb;
-  --surface: #fffdf8;
-  --ink: #1c2430;
-  --muted: #5b6573;
-  --line: #d8d2c6;
-  --accent: #0f5c4c;
-  --accent-soft: #d8ebe5;
-  --danger: #9b2c2c;
-  --shadow: 0 10px 30px rgba(28, 36, 48, 0.06);
-  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
-  color: var(--ink);
-  background: radial-gradient(circle at top left, #e7efe9, transparent 35%),
-    linear-gradient(180deg, #f7f4ee, #efe9df);
-  line-height: 1.45;
-}
+@import "tailwindcss";
 
-* {
-  box-sizing: border-box;
+:root {
+  --color-black: #000000;
+  --color-gray: #a3a3a3;
+  --color-white: #ffffff;
+  --color-purple: #800080;
+  --color-purple-soft: #f3e6f3;
+  --color-bg: #f7f7f8;
+  --color-surface: #ffffff;
+  --color-danger: #9b1c1c;
+  --color-success: #0f5c4c;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+  color: var(--color-black);
+  background: var(--color-bg);
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
+#root {
+  min-height: 100vh;
 }

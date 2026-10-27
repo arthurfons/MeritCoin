@@ -17,10 +17,10 @@ dist/
 *.log
 *.db
 *.db-journal
+backend/.embedded-pg/
 
 # Temporários da geração de PDF / PlantUML
 docs/sprint1/_tmp_diagramas/
-docs/sprint1/diagramas/*.png
 docs/sprint2/_tmp_diagramas/
 
 # Frontend

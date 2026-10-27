@@ -1,134 +1,129 @@
-// MER — Sistema de Moeda Estudantil (Sprint 2)
-// ORM: Prisma | Dev: SQLite | Produção alvo: PostgreSQL (trocar provider + DATABASE_URL)
+// MeritCoin — Sprint 2
+// ORM: Prisma | Banco: PostgreSQL
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model Instituicao {
-  id          Int         @id @default(autoincrement())
-  nome        String      @unique
-  cursos      Curso[]
-  alunos      Aluno[]
-  professores Professor[]
+enum Role {
+  ALUNO
+  PROFESSOR
+  EMPRESA
+  ADMIN
 }
 
-model Curso {
-  id            Int         @id @default(autoincrement())
-  nome          String
-  instituicaoId Int
-  instituicao   Instituicao @relation(fields: [instituicaoId], references: [id])
-  alunos        Aluno[]
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         Role
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  @@unique([nome, instituicaoId])
+  student StudentProfile?
+  teacher TeacherProfile?
+  company CompanyProfile?
 }
 
-model Aluno {
-  id            Int      @id @default(autoincrement())
-  nome          String
-  email         String   @unique
-  cpf           String   @unique
-  rg            String
-  login         String   @unique
-  senhaHash     String
-  saldoMoedas   Float    @default(0)
-  logradouro    String
-  numero        String
-  complemento   String?
-  bairro        String
-  cidade        String
-  estado        String
-  cep           String
-  instituicaoId Int
-  cursoId       Int
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  instituicao Instituicao      @relation(fields: [instituicaoId], references: [id])
-  curso       Curso            @relation(fields: [cursoId], references: [id])
-  transacoes  TransacaoMoeda[]
-  resgates    Resgate[]
-}
-
-model EmpresaParceira {
-  id        Int      @id @default(autoincrement())
-  nome      String
-  cnpj      String   @unique
-  email     String   @unique
-  login     String   @unique
-  senhaHash String
+model Institution {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  vantagens Vantagem[]
+  departments Department[]
+  courses     Course[]
+  students    StudentProfile[]
+  teachers    TeacherProfile[]
 }
 
-model Professor {
-  id            Int      @id @default(autoincrement())
-  nome          String
-  cpf           String   @unique
-  departamento  String
-  login         String   @unique
-  senhaHash     String
-  saldoMoedas   Float    @default(0)
-  instituicaoId Int
+model Department {
+  id            String   @id @default(uuid())
+  name          String
+  institutionId String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  instituicao Instituicao        @relation(fields: [instituicaoId], references: [id])
-  transacoes  TransacaoMoeda[]
-  creditos    CreditoSemestral[]
+  institution Institution      @relation(fields: [institutionId], references: [id])
+  teachers    TeacherProfile[]
+
+  @@unique([name, institutionId])
+  @@index([institutionId])
 }
 
-model Vantagem {
-  id          Int      @id @default(autoincrement())
-  descricao   String
-  fotoUrl     String
-  custoMoedas Float
-  ativa       Boolean  @default(true)
-  empresaId   Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model Course {
+  id            String   @id @default(uuid())
+  name          String
+  institutionId String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  empresa  EmpresaParceira @relation(fields: [empresaId], references: [id])
-  resgates Resgate[]
+  institution Institution      @relation(fields: [institutionId], references: [id])
+  students    StudentProfile[]
+
+  @@unique([name, institutionId])
+  @@index([institutionId])
 }
 
-model TransacaoMoeda {
-  id          Int      @id @default(autoincrement())
-  valor       Float
-  mensagem    String
-  dataHora    DateTime @default(now())
-  professorId Int
-  alunoId     Int
+model StudentProfile {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  fullName      String
+  cpf           String   @unique
+  rg            String
+  street        String
+  number        String
+  complement    String?
+  district      String
+  city          String
+  state         String
+  zipCode       String
+  balance       Int      @default(0)
+  institutionId String
+  courseId      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  professor Professor @relation(fields: [professorId], references: [id])
-  aluno     Aluno     @relation(fields: [alunoId], references: [id])
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution Institution @relation(fields: [institutionId], references: [id])
+  course      Course      @relation(fields: [courseId], references: [id])
+
+  @@index([institutionId])
+  @@index([courseId])
 }
 
-model Resgate {
-  id            Int      @id @default(autoincrement())
-  codigoCupom   String   @unique
-  valorDebitado Float
-  dataHora      DateTime @default(now())
-  alunoId       Int
-  vantagemId    Int
+model TeacherProfile {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  fullName      String
+  cpf           String   @unique
+  balance       Int      @default(0)
+  institutionId String
+  departmentId  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  aluno    Aluno    @relation(fields: [alunoId], references: [id])
-  vantagem Vantagem @relation(fields: [vantagemId], references: [id])
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution Institution @relation(fields: [institutionId], references: [id])
+  department  Department  @relation(fields: [departmentId], references: [id])
+
+  @@index([institutionId])
 }
 
-model CreditoSemestral {
-  id          Int      @id @default(autoincrement())
-  semestre    String
-  valor       Float
-  dataCredito DateTime @default(now())
-  professorId Int
+model CompanyProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  tradeName String
+  cnpj      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  professor Professor @relation(fields: [professorId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

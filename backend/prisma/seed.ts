@@ -1,60 +1,147 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const puc = await prisma.instituicao.upsert({
-    where: { nome: 'PUC Minas' },
+  const passwordHash = await bcrypt.hash('Senha@123', 10);
+
+  const institution = await prisma.institution.upsert({
+    where: { name: 'PUC Minas' },
     update: {},
-    create: { nome: 'PUC Minas' },
+    create: { name: 'PUC Minas' },
   });
 
-  const ufmg = await prisma.instituicao.upsert({
-    where: { nome: 'UFMG' },
+  const ufmg = await prisma.institution.upsert({
+    where: { name: 'UFMG' },
     update: {},
-    create: { nome: 'UFMG' },
+    create: { name: 'UFMG' },
   });
 
-  const cursosPuc = [
+  const dept = await prisma.department.upsert({
+    where: {
+      name_institutionId: {
+        name: 'Engenharia de Software',
+        institutionId: institution.id,
+      },
+    },
+    update: {},
+    create: {
+      name: 'Engenharia de Software',
+      institutionId: institution.id,
+    },
+  });
+
+  const coursesPuc = [
     'Engenharia de Software',
     'Ciência da Computação',
     'Sistemas de Informação',
   ];
-  for (const nome of cursosPuc) {
-    await prisma.curso.upsert({
-      where: { nome_instituicaoId: { nome, instituicaoId: puc.id } },
+  for (const name of coursesPuc) {
+    await prisma.course.upsert({
+      where: { name_institutionId: { name, institutionId: institution.id } },
       update: {},
-      create: { nome, instituicaoId: puc.id },
+      create: { name, institutionId: institution.id },
     });
   }
 
-  const cursosUfmg = ['Engenharia de Computação', 'Ciência da Computação'];
-  for (const nome of cursosUfmg) {
-    await prisma.curso.upsert({
-      where: { nome_instituicaoId: { nome, instituicaoId: ufmg.id } },
+  for (const name of ['Engenharia de Computação', 'Ciência da Computação']) {
+    await prisma.course.upsert({
+      where: { name_institutionId: { name, institutionId: ufmg.id } },
       update: {},
-      create: { nome, instituicaoId: ufmg.id },
+      create: { name, institutionId: ufmg.id },
     });
   }
 
-  const senhaHash = await bcrypt.hash('senha123', 10);
-
-  await prisma.professor.upsert({
-    where: { cpf: '11122233344' },
-    update: {},
-    create: {
-      nome: 'Prof. Ana Silva',
-      cpf: '11122233344',
-      departamento: 'Engenharia de Software',
-      login: 'ana.silva',
-      senhaHash,
-      saldoMoedas: 1000,
-      instituicaoId: puc.id,
+  const course = await prisma.course.findFirstOrThrow({
+    where: {
+      name: 'Engenharia de Software',
+      institutionId: institution.id,
     },
   });
 
-  console.log('Seed concluído: instituições, cursos e professor pré-cadastrados.');
+  // Professor pré-cadastrado (não via cadastro público)
+  const teacherUser = await prisma.user.upsert({
+    where: { email: 'professor@demo.meritcoin.local' },
+    update: {},
+    create: {
+      email: 'professor@demo.meritcoin.local',
+      passwordHash,
+      role: Role.PROFESSOR,
+      teacher: {
+        create: {
+          fullName: 'Profa. Ana Silva',
+          cpf: '11122233344',
+          balance: 1000,
+          institutionId: institution.id,
+          departmentId: dept.id,
+        },
+      },
+    },
+  });
+
+  // Aluno de demonstração
+  await prisma.user.upsert({
+    where: { email: 'aluno@demo.meritcoin.local' },
+    update: {},
+    create: {
+      email: 'aluno@demo.meritcoin.local',
+      passwordHash,
+      role: Role.ALUNO,
+      student: {
+        create: {
+          fullName: 'Arthur Demo Aluno',
+          cpf: '12345678901',
+          rg: 'MG123456',
+          street: 'Rua da Bahia',
+          number: '1000',
+          district: 'Centro',
+          city: 'Belo Horizonte',
+          state: 'MG',
+          zipCode: '30160011',
+          balance: 0,
+          institutionId: institution.id,
+          courseId: course.id,
+        },
+      },
+    },
+  });
+
+  // Empresa de demonstração
+  await prisma.user.upsert({
+    where: { email: 'empresa@demo.meritcoin.local' },
+    update: {},
+    create: {
+      email: 'empresa@demo.meritcoin.local',
+      passwordHash,
+      role: Role.EMPRESA,
+      company: {
+        create: {
+          tradeName: 'Café Campus LTDA',
+          cnpj: '12345678000199',
+        },
+      },
+    },
+  });
+
+  // Admin (pré-cadastro institucional)
+  await prisma.user.upsert({
+    where: { email: 'admin@demo.meritcoin.local' },
+    update: {},
+    create: {
+      email: 'admin@demo.meritcoin.local',
+      passwordHash,
+      role: Role.ADMIN,
+    },
+  });
+
+  console.log('Seed Sprint 2 concluído.');
+  console.log('Credenciais demo (senha: Senha@123):');
+  console.log('- aluno@demo.meritcoin.local');
+  console.log('- professor@demo.meritcoin.local');
+  console.log('- empresa@demo.meritcoin.local');
+  console.log('- admin@demo.meritcoin.local');
+  console.log('Professor user id:', teacherUser.id);
 }
 
 main()

@@ -1,29 +1,31 @@
-import { NavLink, Route, Routes } from 'react-router-dom';
-import { AlunosPage } from './pages/AlunosPage';
-import { EmpresasPage } from './pages/EmpresasPage';
-import './App.css';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { Layout } from './components/Layout';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { CompaniesPage } from './pages/CompaniesPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { HomePage } from './pages/HomePage';
+import { LoginPage } from './pages/LoginPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { RegisterCompanyPage } from './pages/RegisterCompanyPage';
+import { RegisterStudentPage } from './pages/RegisterStudentPage';
+import { StudentsPage } from './pages/StudentsPage';
 
 export default function App() {
   return (
-    <div className="app">
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">PUC Minas · Projeto de Software</p>
-          <h1>Sistema de Moeda Estudantil</h1>
-        </div>
-        <nav>
-          <NavLink to="/" end>
-            Alunos
-          </NavLink>
-          <NavLink to="/empresas">Empresas Parceiras</NavLink>
-        </nav>
-      </header>
-      <main>
-        <Routes>
-          <Route path="/" element={<AlunosPage />} />
-          <Route path="/empresas" element={<EmpresasPage />} />
-        </Routes>
-      </main>
-    </div>
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/cadastro/aluno" element={<RegisterStudentPage />} />
+      <Route path="/cadastro/empresa" element={<RegisterCompanyPage />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="/app" element={<Layout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="alunos" element={<StudentsPage />} />
+          <Route path="empresas" element={<CompaniesPage />} />
+          <Route path="perfil" element={<ProfilePage />} />
+        </Route>
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }

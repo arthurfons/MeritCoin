@@ -1,24 +1,27 @@
-# Lab03S02 — Sprint 2: Persistência e Funcionalidades Iniciais
+# Lab03S02 — Sprint 2: Persistência e CRUDs iniciais
 
-## Entregáveis
+## Status: concluída (base funcional)
 
-| # | Artefato | Local |
-|---|----------|--------|
-| 1 | Modelo Entidade-Relacionamento (MER) | [mer.md](mer.md) · [diagramas/mer.puml](diagramas/mer.puml) |
-| 2 | Estratégia de acesso ao banco | [estrategia-persistencia.md](estrategia-persistencia.md) |
-| 3 | CRUD de Aluno (front + back) | `backend/` + `frontend/` |
-| 4 | CRUD de Empresa Parceira (front + back) | `backend/` + `frontend/` |
+| Entregável | Situação |
+|------------|----------|
+| MER | [mer.md](mer.md) · [diagramas/mer.puml](diagramas/mer.puml) |
+| Estratégia de persistência | [estrategia-persistencia.md](estrategia-persistencia.md) |
+| PostgreSQL + Prisma Migrate | `backend/prisma` + `docker-compose.yml` |
+| Seed | `backend/prisma/seed.ts` |
+| CRUD Aluno (API + UI) | `/api/v1/auth/register/student`, `/students` + telas React |
+| CRUD Empresa (API + UI) | `/api/v1/auth/register/company`, `/companies` + telas React |
+| Auth JWT + RBAC | `AuthModule` |
+| Swagger | http://localhost:3000/docs |
+| Testes | `backend/src/auth/auth.service.spec.ts` |
 
-## Stack escolhida
+## Como validar em aula
 
-| Camada | Tecnologia |
-|--------|------------|
-| Backend | NestJS (TypeScript) |
-| ORM | **Prisma** |
-| Banco (dev) | SQLite (`file:./dev.db`) |
-| Banco (alvo/produção) | PostgreSQL (mesmo schema Prisma) |
-| Frontend | React + Vite + TypeScript |
+1. Subir PostgreSQL (`docker compose up -d` **ou** `node backend/scripts/start-embedded-pg.mjs`)
+2. `cd backend && npx prisma migrate dev && npx prisma db seed && npm run start:dev`
+3. `cd frontend && npm run dev`
+4. Login com `admin@demo.meritcoin.local` / `Senha@123`
+5. Listar alunos e empresas; cadastrar novos pelos formulários públicos
 
-## Como executar
+## Fora do escopo desta sprint (Sprint 3)
 
-Ver [README.md](../../README.md) na raiz do repositório.
+Transferência de moedas, alocação semestral, vantagens, cupons e e-mails.
