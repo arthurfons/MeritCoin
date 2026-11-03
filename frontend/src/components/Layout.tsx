@@ -1,13 +1,33 @@
-import { GraduationCap, LogOut, Building2, Users } from 'lucide-react';
+import {
+  Building2,
+  Gift,
+  GraduationCap,
+  LogOut,
+  Target,
+  Users,
+  Wallet,
+} from 'lucide-react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 
 export function Layout() {
   const { user, logout } = useAuth();
+  const showStudents =
+    user?.role === 'ADMIN' ||
+    user?.role === 'ESCOLA' ||
+    user?.role === 'PROFESSOR';
+  const showCompanies = user?.role === 'ADMIN';
+  const showMissions =
+    user?.role === 'ADMIN' ||
+    user?.role === 'ESCOLA' ||
+    user?.role === 'PROFESSOR' ||
+    user?.role === 'ALUNO';
+  const showWallet = user?.role === 'PROFESSOR' || user?.role === 'ALUNO';
+  const showRewards = user?.role === 'ALUNO' || user?.role === 'EMPRESA';
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[240px_1fr]">
-      <aside className="border-b border-neutral-200 bg-black text-white lg:border-b-0 lg:border-r lg:min-h-screen">
+      <aside className="border-b border-neutral-200 bg-black text-white lg:min-h-screen lg:border-b-0 lg:border-r">
         <div className="p-5">
           <div className="flex items-center gap-2">
             <GraduationCap className="text-[var(--color-purple)]" />
@@ -28,21 +48,51 @@ export function Layout() {
             >
               Dashboard
             </NavLink>
-            {(user?.role === 'ADMIN' || user?.role === 'PROFESSOR') && (
+            {showStudents && (
               <NavLink
                 to="/app/alunos"
                 className={({ isActive }) =>
-                  `rounded-lg px-3 py-2 flex items-center gap-2 ${isActive ? 'bg-[var(--color-purple)]' : 'hover:bg-neutral-900'}`
+                  `flex items-center gap-2 rounded-lg px-3 py-2 ${isActive ? 'bg-[var(--color-purple)]' : 'hover:bg-neutral-900'}`
                 }
               >
                 <Users size={16} /> Alunos
               </NavLink>
             )}
-            {user?.role === 'ADMIN' && (
+            {showWallet && (
+              <NavLink
+                to="/app/carteira"
+                className={({ isActive }) =>
+                  `flex items-center gap-2 rounded-lg px-3 py-2 ${isActive ? 'bg-[var(--color-purple)]' : 'hover:bg-neutral-900'}`
+                }
+              >
+                <Wallet size={16} /> Carteira
+              </NavLink>
+            )}
+            {showRewards && (
+              <NavLink
+                to="/app/vantagens"
+                className={({ isActive }) =>
+                  `flex items-center gap-2 rounded-lg px-3 py-2 ${isActive ? 'bg-[var(--color-purple)]' : 'hover:bg-neutral-900'}`
+                }
+              >
+                <Gift size={16} /> Vantagens
+              </NavLink>
+            )}
+            {showMissions && (
+              <NavLink
+                to="/app/missoes"
+                className={({ isActive }) =>
+                  `flex items-center gap-2 rounded-lg px-3 py-2 ${isActive ? 'bg-[var(--color-purple)]' : 'hover:bg-neutral-900'}`
+                }
+              >
+                <Target size={16} /> Missões
+              </NavLink>
+            )}
+            {showCompanies && (
               <NavLink
                 to="/app/empresas"
                 className={({ isActive }) =>
-                  `rounded-lg px-3 py-2 flex items-center gap-2 ${isActive ? 'bg-[var(--color-purple)]' : 'hover:bg-neutral-900'}`
+                  `flex items-center gap-2 rounded-lg px-3 py-2 ${isActive ? 'bg-[var(--color-purple)]' : 'hover:bg-neutral-900'}`
                 }
               >
                 <Building2 size={16} /> Empresas
@@ -77,7 +127,10 @@ export function Layout() {
             >
               <LogOut size={16} /> Sair
             </button>
-            <Link to="/" className="hidden text-sm text-[var(--color-purple)] sm:inline">
+            <Link
+              to="/"
+              className="hidden text-sm text-[var(--color-purple)] sm:inline"
+            >
               Início
             </Link>
           </div>

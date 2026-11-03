@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
+import { StudentConstellationBackground } from '../components/StudentConstellationBackground';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
 
@@ -69,83 +70,96 @@ export function RegisterStudentPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="rounded-2xl bg-white p-6 shadow-lg ring-1 ring-neutral-200"
-      >
-        <h1 className="text-2xl font-bold">Cadastro de Aluno</h1>
-        {error && (
-          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
-          </p>
-        )}
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          {(
-            [
-              ['fullName', 'Nome completo'],
-              ['email', 'E-mail'],
-              ['cpf', 'CPF'],
-              ['rg', 'RG'],
-              ['password', 'Senha'],
-              ['street', 'Logradouro'],
-              ['number', 'Número'],
-              ['complement', 'Complemento'],
-              ['district', 'Bairro'],
-              ['city', 'Cidade'],
-              ['state', 'UF'],
-              ['zipCode', 'CEP'],
-            ] as const
-          ).map(([name, label]) => (
-            <label key={name} className="text-sm">
-              {label}
-              <input
-                type={name === 'password' ? 'password' : 'text'}
-                className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2"
-                {...register(name)}
-              />
-            </label>
-          ))}
-          <label className="text-sm">
-            Instituição
-            <select
-              className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2"
-              {...register('institutionId')}
-            >
-              <option value="">Selecione</option>
-              {institutions.map((i) => (
-                <option key={i.id} value={i.id}>
-                  {i.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm">
-            Curso
-            <select
-              className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2"
-              {...register('courseId')}
-            >
-              <option value="">Selecione</option>
-              {courses.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="mt-5 rounded-xl bg-[var(--color-purple)] px-5 py-3 font-medium text-white"
+    <StudentConstellationBackground>
+      <div className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center px-4 py-10">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="rounded-2xl border border-white/15 bg-white/93 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur-md ring-1 ring-black/5"
         >
-          Cadastrar
-        </button>
-        <Link to="/login" className="ml-4 text-sm text-[var(--color-purple)]">
-          Já tenho conta
-        </Link>
-      </form>
-    </div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-purple)]">
+            MeritCoin · Aluno
+          </p>
+          <h1 className="mt-2 text-2xl font-bold">Cadastro de Aluno</h1>
+          <p className="mt-1 text-sm text-neutral-500">
+            Preencha os dados do enunciado para criar sua conta.
+          </p>
+          {error && (
+            <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </p>
+          )}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {(
+              [
+                ['fullName', 'Nome completo'],
+                ['email', 'E-mail'],
+                ['cpf', 'CPF'],
+                ['rg', 'RG'],
+                ['password', 'Senha'],
+                ['street', 'Logradouro'],
+                ['number', 'Número'],
+                ['complement', 'Complemento'],
+                ['district', 'Bairro'],
+                ['city', 'Cidade'],
+                ['state', 'UF'],
+                ['zipCode', 'CEP'],
+              ] as const
+            ).map(([name, label]) => (
+              <label key={name} className="text-sm">
+                {label}
+                <input
+                  type={name === 'password' ? 'password' : 'text'}
+                  className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2"
+                  {...register(name)}
+                />
+              </label>
+            ))}
+            <label className="text-sm">
+              Instituição
+              <select
+                className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2"
+                {...register('institutionId')}
+              >
+                <option value="">Selecione</option>
+                {institutions.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm">
+              Curso
+              <select
+                className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2"
+                {...register('courseId')}
+              >
+                <option value="">Selecione</option>
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="mt-5 flex flex-wrap items-center gap-4">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="rounded-xl bg-[var(--color-purple)] px-5 py-3 font-medium text-white disabled:opacity-60"
+            >
+              {isSubmitting ? 'Cadastrando...' : 'Cadastrar'}
+            </button>
+            <Link to="/login" className="text-sm text-[var(--color-purple)]">
+              Já tenho conta
+            </Link>
+            <Link to="/" className="text-sm text-neutral-500">
+              Início
+            </Link>
+          </div>
+        </form>
+      </div>
+    </StudentConstellationBackground>
   );
 }

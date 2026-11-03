@@ -11,11 +11,6 @@ export class UpdateStudentDto {
 
   @IsOptional()
   @IsString()
-  @MinLength(6)
-  password?: string;
-
-  @IsOptional()
-  @IsString()
   street?: string;
 
   @IsOptional()
@@ -44,10 +39,23 @@ export class UpdateStudentDto {
   zipCode?: string;
 
   @IsOptional()
-  @IsUUID()
-  institutionId?: string;
+  @IsString()
+  studentNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  gradeYear?: string;
 
   @IsOptional()
   @IsUUID()
   courseId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  classId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  password?: string;
 }

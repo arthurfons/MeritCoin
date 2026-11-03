@@ -4,7 +4,7 @@ jest.mock('@nestjs/jwt', () => ({
   },
 }));
 
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
@@ -16,9 +16,6 @@ describe('AuthService', () => {
     user: {
       findUnique: jest.fn(),
       create: jest.fn(),
-    },
-    course: {
-      findFirst: jest.fn(),
     },
   };
 
@@ -55,26 +52,5 @@ describe('AuthService', () => {
     });
     expect(res.accessToken).toBe('token-demo');
     expect(res.user).not.toHaveProperty('passwordHash');
-  });
-
-  it('impede cadastro de aluno com curso de outra instituição', async () => {
-    prisma.course.findFirst.mockResolvedValue(null);
-    await expect(
-      service.registerStudent({
-        fullName: 'Teste',
-        email: 't@t.com',
-        cpf: '12345678901',
-        rg: '1',
-        password: 'Senha@123',
-        street: 'Rua',
-        number: '1',
-        district: 'Bairro',
-        city: 'BH',
-        state: 'MG',
-        zipCode: '30100000',
-        institutionId: '11111111-1111-1111-1111-111111111111',
-        courseId: '22222222-2222-2222-2222-222222222222',
-      }),
-    ).rejects.toBeInstanceOf(ConflictException);
   });
 });

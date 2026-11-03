@@ -16,6 +16,7 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<AuthUser>;
   logout: () => void;
   setSession: (token: string, user: AuthUser) => void;
+  refresh: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -64,9 +65,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const refresh = useCallback(async () => {
+    if (!localStorage.getItem('meritcoin_token')) return;
+    const me = await api.me();
+    setUser(me);
+  }, []);
+
   const value = useMemo(
-    () => ({ user, token, loading, login, logout, setSession }),
-    [user, token, loading, login, logout, setSession],
+    () => ({ user, token, loading, login, logout, setSession, refresh }),
+    [user, token, loading, login, logout, setSession, refresh],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

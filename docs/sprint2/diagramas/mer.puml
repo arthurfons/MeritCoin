@@ -1,121 +1,101 @@
-@startuml MER_Moeda_Estudantil
+@startuml MER_Moeda_Estudantil_S02
 !theme plain
-title Sistema de Moeda Estudantil — MER (Sprint 2)
+title MeritCoin — MER Lab03S02 (Aluno + Empresa)
 hide circle
 skinparam linetype ortho
+skinparam classAttributeIconSize 0
 
-entity "INSTITUICAO" as inst {
-  * id : INT <<PK>>
+entity "User" as user {
+  * id : UUID <<PK>>
   --
-  * nome : VARCHAR <<UK>>
-}
-
-entity "CURSO" as curso {
-  * id : INT <<PK>>
-  --
-  * nome : VARCHAR
-  * instituicaoId : INT <<FK>>
-}
-
-entity "ALUNO" as aluno {
-  * id : INT <<PK>>
-  --
-  * nome : VARCHAR
   * email : VARCHAR <<UK>>
+  * passwordHash : VARCHAR
+  * role : ENUM
+  * active : BOOLEAN
+}
+
+entity "StudentProfile" as aluno {
+  * id : UUID <<PK>>
+  --
+  * userId : UUID <<FK,UK>>
+  * fullName : VARCHAR
   * cpf : VARCHAR <<UK>>
   * rg : VARCHAR
-  * login : VARCHAR <<UK>>
-  * senhaHash : VARCHAR
-  * saldoMoedas : REAL
-  * logradouro : VARCHAR
-  * numero : VARCHAR
-  complemento : VARCHAR
-  * bairro : VARCHAR
-  * cidade : VARCHAR
-  * estado : VARCHAR
-  * cep : VARCHAR
-  * instituicaoId : INT <<FK>>
-  * cursoId : INT <<FK>>
+  * street : VARCHAR
+  * number : VARCHAR
+  complement : VARCHAR
+  * district : VARCHAR
+  * city : VARCHAR
+  * state : VARCHAR
+  * zipCode : VARCHAR
+  studentNumber : VARCHAR
+  gradeYear : VARCHAR
+  * balance : INT
+  * institutionId : UUID <<FK>>
+  * courseId : UUID <<FK>>
+  classId : UUID <<FK>>
 }
 
-entity "EMPRESA_PARCEIRA" as emp {
-  * id : INT <<PK>>
+entity "CompanyProfile" as emp {
+  * id : UUID <<PK>>
   --
-  * nome : VARCHAR
+  * userId : UUID <<FK,UK>>
+  * tradeName : VARCHAR
   * cnpj : VARCHAR <<UK>>
-  * email : VARCHAR <<UK>>
-  * login : VARCHAR <<UK>>
-  * senhaHash : VARCHAR
 }
 
-entity "PROFESSOR" as prof {
-  * id : INT <<PK>>
+entity "TeacherProfile" as prof {
+  * id : UUID <<PK>>
   --
-  * nome : VARCHAR
+  * userId : UUID <<FK,UK>>
+  * fullName : VARCHAR
   * cpf : VARCHAR <<UK>>
-  * departamento : VARCHAR
-  * login : VARCHAR <<UK>>
-  * senhaHash : VARCHAR
-  * saldoMoedas : REAL
-  * instituicaoId : INT <<FK>>
+  * balance : INT
+  * institutionId : UUID <<FK>>
+  * departmentId : UUID <<FK>>
 }
 
-entity "VANTAGEM" as vant {
-  * id : INT <<PK>>
+entity "Institution" as inst {
+  * id : UUID <<PK>>
   --
-  * descricao : VARCHAR
-  * fotoUrl : VARCHAR
-  * custoMoedas : REAL
-  * ativa : BOOLEAN
-  * empresaId : INT <<FK>>
+  * name : VARCHAR <<UK>>
+  * active : BOOLEAN
 }
 
-entity "TRANSACAO_MOEDA" as tx {
-  * id : INT <<PK>>
+entity "Course" as curso {
+  * id : UUID <<PK>>
   --
-  * valor : REAL
-  * mensagem : VARCHAR
-  * dataHora : DATETIME
-  * professorId : INT <<FK>>
-  * alunoId : INT <<FK>>
+  * name : VARCHAR
+  * institutionId : UUID <<FK>>
 }
 
-entity "RESGATE" as res {
-  * id : INT <<PK>>
+entity "Department" as dept {
+  * id : UUID <<PK>>
   --
-  * codigoCupom : VARCHAR <<UK>>
-  * valorDebitado : REAL
-  * dataHora : DATETIME
-  * alunoId : INT <<FK>>
-  * vantagemId : INT <<FK>>
+  * name : VARCHAR
+  * institutionId : UUID <<FK>>
 }
 
-entity "CREDITO_SEMESTRAL" as cred {
-  * id : INT <<PK>>
-  --
-  * semestre : VARCHAR
-  * valor : REAL
-  * dataCredito : DATETIME
-  * professorId : INT <<FK>>
-}
-
+user ||--o| aluno
+user ||--o| emp
+user ||--o| prof
 inst ||--o{ curso
+inst ||--o{ dept
 inst ||--o{ aluno
 inst ||--o{ prof
 curso ||--o{ aluno
-emp ||--o{ vant
-prof ||--o{ tx
-aluno ||--o{ tx
-aluno ||--o{ res
-vant ||--o{ res
-prof ||--o{ cred
+dept ||--o{ prof
 
-note bottom of aluno
-  CRUD completo — Sprint 2
+note right of aluno
+  **CRUD Aluno — Sprint 2**
+  Create: register / escola
+  Read / Update / Soft-delete
 end note
 
-note bottom of emp
-  CRUD completo — Sprint 2
+note right of emp
+  **CRUD Empresa — Sprint 2**
+  Create: register público
+  Read / Update / Soft-delete
 end note
 
 @enduml

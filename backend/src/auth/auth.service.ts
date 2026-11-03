@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -12,6 +13,21 @@ import { RegisterCompanyDto } from './dto/register-company.dto';
 import { RegisterStudentDto } from './dto/register-student.dto';
 import { Role as AppRole } from './roles.enum';
 
+const userInclude = {
+  student: {
+    include: { institution: true, course: true, schoolClass: true },
+  },
+  teacher: {
+    include: {
+      institution: true,
+      department: true,
+      classes: { include: { schoolClass: true } },
+    },
+  },
+  company: true,
+  school: { include: { institution: true } },
+} as const;
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -22,26 +38,16 @@ export class AuthService {
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
-      include: {
-        student: true,
-        teacher: true,
-        company: true,
-      },
+      include: userInclude,
     });
     if (!user || !user.active) {
-      throw new UnauthorizedException('Credenciais inválidas');
+      throw new UnauthorizedException('Credenciais invalidas');
     }
     const ok = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!ok) throw new UnauthorizedException('Credenciais inválidas');
-
-    const accessToken = await this.jwt.signAsync({
-      sub: user.id,
-      email: user.email,
-      role: user.role as AppRole,
-    });
+    if (!ok) throw new UnauthorizedException('Credenciais invalidas');
 
     return {
-      accessToken,
+      accessToken: await this.sign(user.id, user.email, user.role as AppRole),
       user: this.sanitize(user),
     };
   }
@@ -51,8 +57,8 @@ export class AuthService {
       where: { id: dto.courseId, institutionId: dto.institutionId },
     });
     if (!course) {
-      throw new ConflictException(
-        'Curso inválido para a instituição informada',
+      throw new NotFoundException(
+        'Curso invalido para a instituicao informada',
       );
     }
 
@@ -80,16 +86,14 @@ export class AuthService {
             },
           },
         },
-        include: { student: { include: { institution: true, course: true } } },
+        include: userInclude,
       });
-      const accessToken = await this.jwt.signAsync({
-        sub: user.id,
-        email: user.email,
-        role: AppRole.ALUNO,
-      });
-      return { accessToken, user: this.sanitize(user) };
+      return {
+        accessToken: await this.sign(user.id, user.email, AppRole.ALUNO),
+        user: this.sanitize(user),
+      };
     } catch (error) {
-      this.handleUnique(error, 'E-mail ou CPF já cadastrado');
+      this.handleUnique(error, 'E-mail ou CPF ja cadastrado');
     }
   }
 
@@ -108,30 +112,28 @@ export class AuthService {
             },
           },
         },
-        include: { company: true },
+        include: userInclude,
       });
-      const accessToken = await this.jwt.signAsync({
-        sub: user.id,
-        email: user.email,
-        role: AppRole.EMPRESA,
-      });
-      return { accessToken, user: this.sanitize(user) };
+      return {
+        accessToken: await this.sign(user.id, user.email, AppRole.EMPRESA),
+        user: this.sanitize(user),
+      };
     } catch (error) {
-      this.handleUnique(error, 'E-mail ou CNPJ já cadastrado');
+      this.handleUnique(error, 'E-mail ou CNPJ ja cadastrado');
     }
   }
 
   async me(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        student: { include: { institution: true, course: true } },
-        teacher: { include: { institution: true, department: true } },
-        company: true,
-      },
+      include: userInclude,
     });
     if (!user) throw new UnauthorizedException();
     return this.sanitize(user);
+  }
+
+  private sign(sub: string, email: string, role: AppRole) {
+    return this.jwt.signAsync({ sub, email, role });
   }
 
   private sanitize(user: {
@@ -143,6 +145,7 @@ export class AuthService {
     student?: unknown;
     teacher?: unknown;
     company?: unknown;
+    school?: unknown;
   }) {
     const { passwordHash: _, ...rest } = user;
     return rest;

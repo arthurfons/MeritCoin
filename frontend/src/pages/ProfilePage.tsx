@@ -21,9 +21,16 @@ export function ProfilePage() {
               <dd className="font-medium">{user.student.fullName}</dd>
             </div>
             <div>
-              <dt className="text-neutral-500">Instituição / Curso</dt>
+              <dt className="text-neutral-500">Nº do aluno</dt>
+              <dd className="font-medium">{user.student.studentNumber}</dd>
+            </div>
+            <div>
+              <dt className="text-neutral-500">Série / turma</dt>
               <dd className="font-medium">
-                {user.student.institution?.name} — {user.student.course?.name}
+                {user.student.gradeYear}
+                {user.student.schoolClass
+                  ? ` · ${user.student.schoolClass.name}`
+                  : ''}
               </dd>
             </div>
           </>
@@ -32,6 +39,12 @@ export function ProfilePage() {
           <div>
             <dt className="text-neutral-500">Nome</dt>
             <dd className="font-medium">{user.teacher.fullName}</dd>
+          </div>
+        )}
+        {user?.school && (
+          <div>
+            <dt className="text-neutral-500">Instituição</dt>
+            <dd className="font-medium">{user.school.institution?.name}</dd>
           </div>
         )}
         {user?.company && (

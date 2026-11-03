@@ -8,6 +8,7 @@ import {
   MinLength,
 } from 'class-validator';
 
+/** Auto-cadastro do aluno (enunciado). */
 export class RegisterStudentDto {
   @IsString()
   @IsNotEmpty()

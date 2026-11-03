@@ -6,6 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
+  Post,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -15,6 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { JwtPayload } from '../auth/jwt-payload';
 import { Role } from '../auth/roles.enum';
+import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentsService } from './students.service';
 
@@ -25,14 +27,20 @@ import { StudentsService } from './students.service';
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
+  @Post()
+  @Roles(Role.ESCOLA, Role.ADMIN)
+  create(@Body() dto: CreateStudentDto, @CurrentUser() user: JwtPayload) {
+    return this.studentsService.create(dto, user);
+  }
+
   @Get()
-  @Roles(Role.ADMIN, Role.PROFESSOR)
+  @Roles(Role.ADMIN, Role.ESCOLA, Role.PROFESSOR)
   findAll(@CurrentUser() user: JwtPayload) {
     return this.studentsService.findAll(user);
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.PROFESSOR, Role.ALUNO)
+  @Roles(Role.ADMIN, Role.ESCOLA, Role.PROFESSOR, Role.ALUNO)
   findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -41,7 +49,7 @@ export class StudentsController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.ALUNO)
+  @Roles(Role.ADMIN, Role.ESCOLA, Role.ALUNO)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateStudentDto,
@@ -51,7 +59,7 @@ export class StudentsController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN, Role.ALUNO)
+  @Roles(Role.ADMIN, Role.ESCOLA)
   deactivate(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,

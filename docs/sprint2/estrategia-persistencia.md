@@ -1,45 +1,40 @@
-# Estratégia de Persistência — Sprint 2
+# Estratégia de acesso ao banco — Lab03S02
 
-## Decisão
+## Decisão (obrigatória no README / entrega)
 
 | Aspecto | Escolha |
 |---------|---------|
-| Padrão | ORM |
+| Padrão | **ORM** |
 | Ferramenta | **Prisma** |
 | Banco | **PostgreSQL** |
-| Migrações | Prisma Migrate (versionadas em `prisma/migrations`) |
-| Acesso no NestJS | `PrismaService` global (`PrismaModule`) |
-| Dev sem Docker | script `scripts/start-embedded-pg.mjs` (PostgreSQL embutido) |
+| Migrações | Prisma Migrate (`backend/prisma/migrations`) |
+| Acesso no NestJS | `PrismaService` injetável (`PrismaModule` global) |
+| Alternativa a DAO | O Prisma Client cumpre o papel de acesso a dados tipado |
+| Dev sem Docker | `backend/scripts/start-embedded-pg.mjs` |
 | Dev com Docker | `docker compose up -d` |
 
-## Por que Prisma + PostgreSQL
+## Por que ORM (Prisma) e não DAO clássico
 
-1. Atende ao enunciado (ORM + PostgreSQL).
-2. Schema tipado alinhado ao MER.
-3. Migrações auditáveis no Git.
-4. Transações nativas (base para Sprint 3: transferências/resgates).
-5. Seed idempotente para demonstração em aula.
+1. Atende ao enunciado (“ORM, Padrão DAO, **etc.**”) com escolha explícita de **ORM**.
+2. Schema único alinhado ao MER (`schema.prisma`).
+3. Migrações versionadas no Git.
+4. Tipagem TypeScript gerada → menos erro em CRUD.
+5. Transações nativas para evoluções (envio de moedas / resgates).
 
-## Camadas (MVC)
+## Fluxo de uma operação CRUD
 
-```
-React (View)
-  → Controllers NestJS (/api/v1)
-    → Services (regras + autorização)
-      → PrismaService (persistência)
-        → PostgreSQL
-```
+Exemplo — cadastro de aluno:
 
-## Modelo de identidade
+1. Front envia JSON para `POST /api/v1/auth/register/student`
+2. `AuthController` valida DTO (`class-validator`)
+3. `AuthService` aplica regra (curso pertence à instituição, hash bcrypt)
+4. `PrismaService.user.create({ student: { create: … } })` persiste User + StudentProfile
+5. Retorna JWT + usuário sanitizado (sem `passwordHash`)
 
-- `User`: autenticação (e-mail, hash bcrypt, role, active)
-- `StudentProfile` / `TeacherProfile` / `CompanyProfile`: dados de domínio
-- Instituições, cursos e departamentos pré-cadastrados no seed
-- Professor **não** se auto-cadastra pelo formulário público
+## Soft delete
 
-## Segurança na persistência
+`DELETE` em aluno/empresa não remove a linha: marca `User.active = false`.
 
-- Senha apenas como `passwordHash` (bcrypt)
-- Respostas da API sem hash
-- Soft-deactivate via `User.active = false`
-- Saldo em `Int` (moedas inteiras)
+## Seed
+
+`npx prisma db seed` popula instituição, cursos, professor, aluno, empresa e admin demo.

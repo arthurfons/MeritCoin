@@ -1,5 +1,4 @@
-// MeritCoin — Sprint 2
-// ORM: Prisma | Banco: PostgreSQL
+// MeritCoin — alinhado ao enunciado Lab03 + extras (escola/missões)
 
 generator client {
   provider = "prisma-client-js"
@@ -14,7 +13,39 @@ enum Role {
   ALUNO
   PROFESSOR
   EMPRESA
+  ESCOLA
   ADMIN
+}
+
+enum MissionScope {
+  SCHOOL
+  CLASS
+}
+
+enum MissionCompletionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum WalletTxType {
+  SEMESTER_CREDIT
+  TRANSFER_OUT
+  TRANSFER_IN
+  REDEMPTION
+  MISSION_REWARD
+}
+
+enum CouponStatus {
+  ATIVO
+  UTILIZADO
+  CANCELADO
+}
+
+enum EmailOutboxStatus {
+  PENDING
+  SENT
+  FAILED
 }
 
 model User {
@@ -26,9 +57,14 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  student StudentProfile?
-  teacher TeacherProfile?
-  company CompanyProfile?
+  student           StudentProfile?
+  teacher           TeacherProfile?
+  company           CompanyProfile?
+  school            SchoolProfile?
+  missionsCreated   Mission[]           @relation("MissionCreator")
+  completionsReview MissionCompletion[] @relation("CompletionReviewer")
+  notifications     Notification[]
+  emailsSent        EmailOutbox[]
 }
 
 model Institution {
@@ -40,8 +76,11 @@ model Institution {
 
   departments Department[]
   courses     Course[]
+  classes     SchoolClass[]
   students    StudentProfile[]
   teachers    TeacherProfile[]
+  schools     SchoolProfile[]
+  missions    Mission[]
 }
 
 model Department {
@@ -72,11 +111,40 @@ model Course {
   @@index([institutionId])
 }
 
-model StudentProfile {
+model SchoolClass {
+  id            String   @id @default(uuid())
+  name          String
+  gradeYear     String
+  institutionId String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  institution Institution      @relation(fields: [institutionId], references: [id])
+  students    StudentProfile[]
+  teachers    TeacherClass[]
+  missions    Mission[]
+
+  @@unique([name, institutionId])
+  @@index([institutionId])
+}
+
+model SchoolProfile {
   id            String   @id @default(uuid())
   userId        String   @unique
+  displayName   String
+  institutionId String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution Institution @relation(fields: [institutionId], references: [id])
+}
+
+model StudentProfile {
+  id            String  @id @default(uuid())
+  userId        String  @unique
   fullName      String
-  cpf           String   @unique
+  cpf           String  @unique
   rg            String
   street        String
   number        String
@@ -85,18 +153,30 @@ model StudentProfile {
   city          String
   state         String
   zipCode       String
-  balance       Int      @default(0)
+  /// Extra (escola): matrícula
+  studentNumber String?
+  /// Extra (escola): série/ano
+  gradeYear     String?
+  balance       Int     @default(0)
   institutionId String
   courseId      String
+  classId       String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  institution Institution @relation(fields: [institutionId], references: [id])
-  course      Course      @relation(fields: [courseId], references: [id])
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution  Institution         @relation(fields: [institutionId], references: [id])
+  course       Course              @relation(fields: [courseId], references: [id])
+  schoolClass  SchoolClass?        @relation(fields: [classId], references: [id])
+  completions  MissionCompletion[]
+  transactions WalletTransaction[] @relation("StudentTx")
+  redemptions  Redemption[]
+  transfersIn  CoinTransfer[]      @relation("TransferStudent")
 
+  @@unique([studentNumber, institutionId])
   @@index([institutionId])
   @@index([courseId])
+  @@index([classId])
 }
 
 model TeacherProfile {
@@ -110,11 +190,27 @@ model TeacherProfile {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  institution Institution @relation(fields: [institutionId], references: [id])
-  department  Department  @relation(fields: [departmentId], references: [id])
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution  Institution            @relation(fields: [institutionId], references: [id])
+  department   Department             @relation(fields: [departmentId], references: [id])
+  classes      TeacherClass[]
+  missions     Mission[]
+  transactions WalletTransaction[]    @relation("TeacherTx")
+  transfersOut CoinTransfer[]         @relation("TransferTeacher")
+  semesters    TeacherSemesterCredit[]
 
   @@index([institutionId])
+}
+
+model TeacherClass {
+  id        String @id @default(uuid())
+  teacherId String
+  classId   String
+
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  schoolClass SchoolClass    @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, classId])
 }
 
 model CompanyProfile {
@@ -125,5 +221,162 @@ model CompanyProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rewards  Reward[]
+}
+
+model TeacherSemesterCredit {
+  id         String   @id @default(uuid())
+  teacherId  String
+  semester   String
+  amount     Int      @default(1000)
+  createdAt  DateTime @default(now())
+
+  teacher TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, semester])
+}
+
+model CoinTransfer {
+  id          String   @id @default(uuid())
+  teacherId   String
+  studentId   String
+  amount      Int
+  message     String
+  createdAt   DateTime @default(now())
+
+  teacher TeacherProfile @relation("TransferTeacher", fields: [teacherId], references: [id])
+  student StudentProfile @relation("TransferStudent", fields: [studentId], references: [id])
+
+  @@index([teacherId, createdAt])
+  @@index([studentId, createdAt])
+}
+
+model WalletTransaction {
+  id          String       @id @default(uuid())
+  type        WalletTxType
+  amount      Int
+  balanceAfter Int
+  description String
+  teacherId   String?
+  studentId   String?
+  redemptionId String?     @unique
+  transferId  String?
+  createdAt   DateTime     @default(now())
+
+  teacher    TeacherProfile? @relation("TeacherTx", fields: [teacherId], references: [id])
+  student    StudentProfile? @relation("StudentTx", fields: [studentId], references: [id])
+  redemption Redemption?     @relation(fields: [redemptionId], references: [id])
+
+  @@index([teacherId, createdAt])
+  @@index([studentId, createdAt])
+}
+
+model Reward {
+  id          String   @id @default(uuid())
+  companyId   String
+  title       String
+  description String
+  imageUrl    String
+  costCoins   Int
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     CompanyProfile @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  redemptions Redemption[]
+
+  @@index([companyId, active])
+}
+
+model Redemption {
+  id            String       @id @default(uuid())
+  studentId     String
+  rewardId      String
+  costCoins     Int
+  couponCode    String       @unique
+  status        CouponStatus @default(ATIVO)
+  createdAt     DateTime     @default(now())
+  usedAt        DateTime?
+
+  student     StudentProfile     @relation(fields: [studentId], references: [id])
+  reward      Reward             @relation(fields: [rewardId], references: [id])
+  transaction WalletTransaction?
+
+  @@index([studentId, createdAt])
+  @@index([rewardId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model EmailOutbox {
+  id          String            @id @default(uuid())
+  toEmail     String
+  subject     String
+  htmlBody    String
+  status      EmailOutboxStatus @default(PENDING)
+  attempts    Int               @default(0)
+  lastError   String?
+  createdAt   DateTime          @default(now())
+  sentAt      DateTime?
+  createdById String?
+
+  createdBy User? @relation(fields: [createdById], references: [id])
+
+  @@index([status, createdAt])
+}
+
+model Mission {
+  id            String       @id @default(uuid())
+  title         String
+  description   String
+  rewardCoins   Int
+  scope         MissionScope
+  institutionId String
+  classId       String?
+  teacherId     String?
+  createdById   String
+  dueAt         DateTime?
+  repeatable    Boolean      @default(false)
+  maxPerWeek    Int?
+  active        Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  institution Institution         @relation(fields: [institutionId], references: [id])
+  schoolClass SchoolClass?        @relation(fields: [classId], references: [id])
+  teacher     TeacherProfile?     @relation(fields: [teacherId], references: [id])
+  createdBy   User                @relation("MissionCreator", fields: [createdById], references: [id])
+  completions MissionCompletion[]
+
+  @@index([institutionId, active])
+}
+
+model MissionCompletion {
+  id           String                  @id @default(uuid())
+  missionId    String
+  studentId    String
+  status       MissionCompletionStatus @default(PENDING)
+  note         String?
+  reviewedById String?
+  submittedAt  DateTime                @default(now())
+  reviewedAt   DateTime?
+
+  mission    Mission        @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  reviewedBy User?          @relation("CompletionReviewer", fields: [reviewedById], references: [id])
+
+  @@index([missionId, status])
+  @@index([studentId, status])
 }
