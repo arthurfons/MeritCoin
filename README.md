@@ -85,6 +85,22 @@ Infra no repo: `render.yaml`, `backend/Dockerfile`, `frontend/vercel.json`
 
 ---
 
+## Estrutura do repositório
+
+```
+MeritCoin/
+├── README.md
+├── docker-compose.yml      # Postgres local
+├── render.yaml             # Blueprint Render (Lab04S02)
+├── backend/                # NestJS + Prisma
+├── frontend/               # React + Vite (+ vercel.json)
+└── docs/
+    ├── sprint1/            # UML Lab03S01
+    ├── sprint2/            # MER + padrões Lab03S02
+    ├── sprint3/            # Regras Lab03S03
+    └── sprint4/            # Lab04 (s01 sequências · s02 deploy · s03 GRASP)
+```
+
 ## Identidade visual
 
 Preto `#000000` · cinza `#A3A3A3` · branco `#FFFFFF` · roxo `#800080`

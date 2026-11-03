@@ -6,7 +6,7 @@
 
 **[Lab03S01_Sprint1_Modelagem.pdf](Lab03S01_Sprint1_Modelagem.pdf)** — documento completo com capa, regras de negócio, os 4 artefatos da sprint e os diagramas UML.
 
-Para regenerar o PDF: `python docs/sprint1/gerar_pdf.py`
+Síntese textual: [SPRINT1.md](SPRINT1.md).
 
 ## Fontes dos artefatos
 

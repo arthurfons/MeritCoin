@@ -1,6 +1,6 @@
-# Checklist de deploy (executar uma vez na sua máquina)
+# Checklist de deploy (login único)
 
-Requer login interativo (não automatizável sem suas credenciais).
+Requer login interativo na sua conta.
 
 ## Vercel (frontend)
 
@@ -19,4 +19,4 @@ npx vercel --prod
 2. Ou Web Service + Docker (`backend/Dockerfile`)
 3. Configure `CORS_ORIGIN` = URL da Vercel
 4. Shell: `npx prisma db seed`
-5. Atualize `docs/sprint4/s02/DEPLOY.md` com as URLs finais
+5. Atualize [DEPLOY.md](DEPLOY.md) com as URLs finais

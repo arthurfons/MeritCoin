@@ -6,7 +6,7 @@ Arquitetura alvo: **Frontend Vercel** + **API Render** + **PostgreSQL Render/Neo
 
 | Serviço | URL |
 |---------|-----|
-| Frontend (Vercel) | _rodar `npx vercel login` + checklist em [`scripts/cloud-deploy.md`](../../../scripts/cloud-deploy.md)_ |
+| Frontend (Vercel) | _rodar `npx vercel login` + checklist em [CLOUD-CHECKLIST.md](CLOUD-CHECKLIST.md)_ |
 | API (Render) | _Blueprint [`render.yaml`](../../../render.yaml) no dashboard Render_ |
 | Swagger | `https://<api>.onrender.com/docs` |
 

@@ -6,22 +6,25 @@
 Thumbs.db
 
 # Build / deps
-target/
-build/
 node_modules/
 dist/
+coverage/
 *.class
 *.jar
+*.log
+
+# Secrets / local DB
 .env
 .env.local
-*.log
 *.db
 *.db-journal
 backend/.embedded-pg/
 
-# Temporários da geração de PDF / PlantUML
+# Entregas Moodle (não versionar ZIP)
+*.zip
+MeritCoin-*.zip
+
+# Temporários PlantUML / PDF
+docs/**/_tmp_diagramas/
 docs/sprint1/_tmp_diagramas/
 docs/sprint2/_tmp_diagramas/
-
-# Frontend
-frontend/dist/
