@@ -1,0 +1,30 @@
+@startuml SQ03_CreditoSemestral
+!theme plain
+title SQ-03 Crédito Semestral (1.000 moedas)
+skinparam responseMessageBelowArrow true
+
+actor Professor
+participant "WalletPage" as UI
+participant "WalletsController" as C
+participant "WalletsService" as S
+participant "PrismaService" as P
+database PostgreSQL as DB
+
+Professor -> UI: Aplicar crédito semestral
+UI -> C: POST /wallets/semester-credit (JWT)
+C -> S: ensureSemesterCredit(actor)
+S -> P: teacherProfile.findUnique(userId)
+P -> DB: SELECT TeacherProfile
+S -> P: teacherSemesterCredit.findUnique(teacher, semestre)
+alt já creditado neste semestre
+  S --> C: { credited: false, balance }
+else novo semestre
+  S -> P: $transaction
+  P -> DB: INSERT TeacherSemesterCredit
+  P -> DB: UPDATE balance += 1000
+  P -> DB: INSERT WalletTransaction SEMESTER_CREDIT
+  S --> C: { credited: true, balance }
+end
+C --> UI: resultado
+UI --> Professor: saldo atualizado
+@enduml

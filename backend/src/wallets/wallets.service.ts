@@ -7,72 +7,29 @@ import {
 import { WalletTxType } from '@prisma/client';
 import { JwtPayload } from '../auth/jwt-payload';
 import { Role } from '../auth/roles.enum';
-import { EmailService } from '../email/email.service';
+import { MailNotifierService } from '../common/mail-notifier.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransferCoinsDto } from './dto/transfer-coins.dto';
-
-function currentSemester(d = new Date()) {
-  const year = d.getFullYear();
-  const sem = d.getMonth() < 6 ? 1 : 2;
-  return `${year}.${sem}`;
-}
+import { SemesterCreditService } from './semester-credit.service';
 
 @Injectable()
 export class WalletsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly email: EmailService,
+    private readonly semesterCredit: SemesterCreditService,
+    private readonly mail: MailNotifierService,
   ) {}
 
   async ensureSemesterCredit(actor: JwtPayload) {
     if (actor.role !== Role.PROFESSOR && actor.role !== Role.ADMIN) {
       throw new ForbiddenException();
     }
-    const teacher = await this.prisma.teacherProfile.findUnique({
-      where: { userId: actor.sub },
-    });
-    if (!teacher) throw new NotFoundException('Professor nao encontrado');
-
-    const semester = currentSemester();
-    const existing = await this.prisma.teacherSemesterCredit.findUnique({
-      where: {
-        teacherId_semester: { teacherId: teacher.id, semester },
-      },
-    });
-    if (existing) {
-      return {
-        credited: false,
-        semester,
-        balance: teacher.balance,
-        message: 'Credito deste semestre ja aplicado',
-      };
-    }
-
-    const updated = await this.prisma.$transaction(async (tx) => {
-      await tx.teacherSemesterCredit.create({
-        data: { teacherId: teacher.id, semester, amount: 1000 },
-      });
-      const t = await tx.teacherProfile.update({
-        where: { id: teacher.id },
-        data: { balance: { increment: 1000 } },
-      });
-      await tx.walletTransaction.create({
-        data: {
-          type: WalletTxType.SEMESTER_CREDIT,
-          amount: 1000,
-          balanceAfter: t.balance,
-          description: `Credito semestral ${semester}`,
-          teacherId: teacher.id,
-        },
-      });
-      return t;
-    });
-
+    const result = await this.semesterCredit.ensureForTeacherUser(actor.sub);
     return {
-      credited: true,
-      semester,
-      balance: updated.balance,
-      message: '1.000 moedas creditadas (acumulavel)',
+      credited: result.credited,
+      semester: result.semester,
+      balance: result.balance,
+      message: result.message,
     };
   }
 
@@ -86,8 +43,7 @@ export class WalletsService {
     });
     if (!teacher) throw new NotFoundException('Professor nao encontrado');
 
-    // garante credito do semestre atual sem duplicar
-    await this.ensureSemesterCredit(actor);
+    await this.semesterCredit.ensureForTeacherUser(actor.sub);
 
     const student = await this.prisma.studentProfile.findUnique({
       where: { id: dto.studentId },
@@ -143,27 +99,25 @@ export class WalletsService {
           transferId: transfer.id,
         },
       });
-      await tx.notification.create({
-        data: {
-          userId: student.userId,
-          title: 'Voce recebeu moedas',
-          body: `${teacher.fullName} enviou ${dto.amount} moedas. Motivo: ${dto.message}`,
-        },
-      });
       return { transfer, teacherBalance: t.balance, studentBalance: s.balance };
     });
 
-    await this.email.enqueue({
-      toEmail: student.user.email,
-      subject: 'MeritCoin — voce recebeu moedas',
-      htmlBody: `
-        <h2>Reconhecimento recebido</h2>
-        <p><strong>Professor:</strong> ${teacher.fullName}</p>
-        <p><strong>Quantidade:</strong> ${dto.amount}</p>
-        <p><strong>Motivo:</strong> ${dto.message}</p>
-        <p><strong>Seu saldo atual:</strong> ${result.studentBalance}</p>
-      `,
+    await this.mail.notifyUser({
+      userId: student.userId,
+      title: 'Voce recebeu moedas',
+      body: `${teacher.fullName} enviou ${dto.amount} moedas. Motivo: ${dto.message}`,
       createdById: actor.sub,
+      email: {
+        to: student.user.email,
+        subject: 'MeritCoin — voce recebeu moedas',
+        html: `
+          <h2>Reconhecimento recebido</h2>
+          <p><strong>Professor:</strong> ${teacher.fullName}</p>
+          <p><strong>Quantidade:</strong> ${dto.amount}</p>
+          <p><strong>Motivo:</strong> ${dto.message}</p>
+          <p><strong>Seu saldo atual:</strong> ${result.studentBalance}</p>
+        `,
+      },
     });
 
     return result;

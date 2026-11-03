@@ -1,0 +1,30 @@
+@startuml SQ01_Autenticacao
+!theme plain
+title SQ-01 Autenticação (Login JWT)
+skinparam responseMessageBelowArrow true
+
+actor Usuario
+participant "LoginPage\n(React)" as UI
+participant "AuthController" as C
+participant "AuthService" as S
+participant "PrismaService" as P
+database PostgreSQL as DB
+
+Usuario -> UI: email + senha
+UI -> C: POST /api/v1/auth/login
+C -> S: login(dto)
+S -> P: user.findUnique(email)
+P -> DB: SELECT User
+DB --> P: user + profiles
+P --> S: user
+S -> S: bcrypt.compare(senha, hash)
+alt credenciais inválidas
+  S --> C: 401 Unauthorized
+  C --> UI: erro
+else ok
+  S -> S: jwt.sign(sub, email, role)
+  S --> C: { accessToken, user }
+  C --> UI: 200 + JWT
+  UI --> Usuario: redireciona /app
+end
+@enduml

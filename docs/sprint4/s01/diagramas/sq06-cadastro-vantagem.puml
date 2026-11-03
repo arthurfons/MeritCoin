@@ -1,0 +1,23 @@
+@startuml SQ06_CadastroVantagem
+!theme plain
+title SQ-06 Cadastro de Vantagem (Empresa)
+skinparam responseMessageBelowArrow true
+
+actor Empresa
+participant "RewardsPage" as UI
+participant "RewardsController" as C
+participant "RewardsService" as S
+participant "PrismaService" as P
+database PostgreSQL as DB
+
+Empresa -> UI: título, descrição, imageUrl, costCoins
+UI -> C: POST /rewards (JWT EMPRESA)
+C -> S: create(dto, actor)
+S -> P: companyProfile.findUnique(userId)
+S -> P: reward.create(...)
+P -> DB: INSERT Reward
+DB --> P: reward
+S --> C: reward
+C --> UI: 201
+UI --> Empresa: vantagem publicada no catálogo
+@enduml

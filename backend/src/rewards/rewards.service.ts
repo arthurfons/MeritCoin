@@ -5,18 +5,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CouponStatus, WalletTxType } from '@prisma/client';
-import { randomBytes } from 'crypto';
 import { JwtPayload } from '../auth/jwt-payload';
 import { Role } from '../auth/roles.enum';
-import { EmailService } from '../email/email.service';
+import { MailNotifierService } from '../common/mail-notifier.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { generateCouponCode } from './coupon-code';
 import { CreateRewardDto } from './dto/create-reward.dto';
 
 @Injectable()
 export class RewardsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly email: EmailService,
+    private readonly mail: MailNotifierService,
   ) {}
 
   private async companyOf(actor: JwtPayload) {
@@ -87,7 +87,7 @@ export class RewardsService {
       throw new NotFoundException('Vantagem indisponivel');
     }
 
-    const couponCode = randomBytes(8).toString('hex').toUpperCase();
+    const couponCode = generateCouponCode();
 
     const redemption = await this.prisma.$transaction(async (tx) => {
       const fresh = await tx.studentProfile.findUniqueOrThrow({
@@ -120,30 +120,28 @@ export class RewardsService {
           redemptionId: red.id,
         },
       });
-      await tx.notification.create({
-        data: {
-          userId: student.userId,
-          title: 'Resgate realizado',
-          body: `Cupom ${couponCode} para ${reward.title}`,
-        },
-      });
       return red;
     });
 
-    await this.email.enqueue({
-      toEmail: student.user.email,
-      subject: 'MeritCoin — cupom de resgate',
-      htmlBody: `
-        <h2>Resgate confirmado</h2>
-        <p><strong>Vantagem:</strong> ${reward.title}</p>
-        <p><strong>Custo:</strong> ${reward.costCoins} moedas</p>
-        <p><strong>Cupom:</strong> <code>${couponCode}</code></p>
-        <p>Apresente este codigo na troca presencial.</p>
-      `,
+    await this.mail.notifyUser({
+      userId: student.userId,
+      title: 'Resgate realizado',
+      body: `Cupom ${couponCode} para ${reward.title}`,
       createdById: actor.sub,
+      email: {
+        to: student.user.email,
+        subject: 'MeritCoin — cupom de resgate',
+        html: `
+          <h2>Resgate confirmado</h2>
+          <p><strong>Vantagem:</strong> ${reward.title}</p>
+          <p><strong>Custo:</strong> ${reward.costCoins} moedas</p>
+          <p><strong>Cupom:</strong> <code>${couponCode}</code></p>
+          <p>Apresente este codigo na troca presencial.</p>
+        `,
+      },
     });
 
-    await this.email.enqueue({
+    await this.mail.enqueueEmail({
       toEmail: reward.company.user.email,
       subject: 'MeritCoin — novo resgate para conferencia',
       htmlBody: `

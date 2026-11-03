@@ -1,0 +1,41 @@
+@startuml Implantacao_MeritCoin
+!theme plain
+title Diagrama de Implantação — MeritCoin (Lab04S02)
+skinparam shadowing false
+skinparam node {
+  BackgroundColor<<cloud>> #F3E6F3
+}
+
+node "Dispositivo do usuário" as Client {
+  artifact "Browser\n(Chrome/Edge)" as Browser
+}
+
+node "Vercel (Cloud)" <<cloud>> as Vercel {
+  artifact "SPA React/Vite\n(frontend build)" as Front
+}
+
+node "Render (Cloud)" <<cloud>> as Render {
+  artifact "API NestJS\nDocker / Node" as API
+  database "PostgreSQL\n(meritcoin-db)" as DB
+}
+
+node "Provedor SMTP (opcional)" <<cloud>> as Mail {
+  artifact "SMTP\n(Nodemailer)" as SMTP
+}
+
+Browser --> Front : HTTPS
+Front --> API : HTTPS REST + JWT\n/api/v1
+API --> DB : DATABASE_URL\nPrisma ORM
+API --> SMTP : e-mails outbox\n(se SMTP_* configurado)
+
+note right of Front
+  Env: VITE_API_URL
+  vercel.json (SPA rewrite)
+end note
+
+note right of API
+  Env: DATABASE_URL, JWT_SECRET,
+  CORS_ORIGIN, PORT
+  migrate deploy no boot
+end note
+@enduml

@@ -1,0 +1,27 @@
+@startuml SQ05_Extrato
+!theme plain
+title SQ-05 Consulta de Extrato
+skinparam responseMessageBelowArrow true
+
+actor Usuario
+participant "WalletPage" as UI
+participant "WalletsController" as C
+participant "WalletsService" as S
+participant "PrismaService" as P
+database PostgreSQL as DB
+
+Usuario -> UI: abre Carteira
+UI -> C: GET /wallets/statement (JWT)
+C -> S: myStatement(actor)
+alt role PROFESSOR
+  S -> P: walletTransaction.findMany(teacherId)
+  S -> P: coinTransfer.findMany(teacherId)
+else role ALUNO
+  S -> P: walletTransaction.findMany(studentId)
+end
+P -> DB: SELECT
+DB --> P: rows
+S --> C: { balance, transactions, transfers? }
+C --> UI: JSON
+UI --> Usuario: saldo + histórico
+@enduml

@@ -1,8 +1,10 @@
 # MeritCoin — Sistema de Moeda Estudantil
 
-**PUC Minas · Projeto de Software · Lab03 · Sprint 3 (Lab03S03)**
+**PUC Minas · Projeto de Software · Lab03 + Lab04**
 
 Aplicação para reconhecimento do mérito estudantil com moeda virtual.
+
+- GitHub: https://github.com/arthurfons/MeritCoin
 
 ---
 
@@ -14,23 +16,25 @@ Aplicação para reconhecimento do mérito estudantil com moeda virtual.
 | **ORM** | **Prisma** + **PostgreSQL** |
 | **REST / Client-Server** | API `/api/v1` |
 | **DTO + Validação** | `class-validator` |
-| **JWT + RBAC** | Papéis ALUNO, PROFESSOR, EMPRESA, ESCOLA, ADMIN |
+| **JWT + RBAC** | ALUNO, PROFESSOR, EMPRESA, ESCOLA, ADMIN |
 | **SPA** | React + Vite |
-| **Outbox** | E-mails em `EmailOutbox` (SMTP opcional) |
+| **Outbox** | `EmailOutbox` (SMTP opcional) |
+| **GRASP** | Information Expert, High Cohesion, Indirection — ver `docs/sprint4/s03/GRASP.md` |
 
 Detalhes: [`docs/sprint2/PADROES.md`](docs/sprint2/PADROES.md) · MER: [`docs/sprint2/mer.md`](docs/sprint2/mer.md)
 
 ---
 
-## Entregas por sprint
+## Entregas
 
 | Sprint | Conteúdo | Docs |
 |--------|----------|------|
-| **S01** | Modelagem (casos de uso, classes, componentes) | `docs/sprint1/` |
-| **S02** | MER + ORM + CRUD Aluno/Empresa | `docs/sprint2/` |
-| **S03** | Crédito semestral, transferência, extrato, vantagens, cupom, e-mails | `docs/sprint3/` |
-
-Roteiro de apresentação: [`docs/sprint3/APRESENTACAO.md`](docs/sprint3/APRESENTACAO.md)
+| Lab03S01 | Casos de uso, histórias, classes, componentes | `docs/sprint1/` |
+| Lab03S02 | MER + ORM + CRUD aluno/empresa | `docs/sprint2/` |
+| Lab03S03 | Moedas, extrato, vantagens, cupom, e-mails | `docs/sprint3/` |
+| **Lab04S01** | Sequências + Interaction Overview | `docs/sprint4/s01/` |
+| **Lab04S02** | Implantação + Vercel/Render | `docs/sprint4/s02/` |
+| **Lab04S03** | Análise crítica + GRASP | `docs/sprint4/s03/` |
 
 ---
 
@@ -42,80 +46,44 @@ Roteiro de apresentação: [`docs/sprint3/APRESENTACAO.md`](docs/sprint3/APRESEN
 | ORM / BD | Prisma + PostgreSQL |
 | Auth | JWT + bcrypt + RBAC |
 | Frontend | React + Vite + TanStack Query + RHF/Zod + Tailwind |
-| Docs API | Swagger `/docs` |
+| Cloud | Vercel (front) + Render (API/DB) |
 
 ---
 
-## Como executar
-
-**Pré-requisitos:** Node.js 20+ e PostgreSQL.
+## Como executar (local)
 
 ```bash
-# Opção A — Docker
-docker compose up -d
-
-# Opção B — PG embutido (deixar terminal aberto)
-cd backend && node scripts/start-embedded-pg.mjs
-```
-
-```bash
+# Postgres: docker compose up -d   OU   cd backend && node scripts/start-embedded-pg.mjs
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 
-# API
-cd backend
-npm install
-npx prisma migrate dev
-# se houver drift: npx prisma db push
-npx prisma db seed
-npm run start:dev
-
-# Web (outro terminal)
-cd frontend
-npm install
-npm run dev
+cd backend && npm i && npx prisma migrate dev && npx prisma db seed && npm run start:dev
+cd frontend && npm i && npm run dev
 ```
 
 | Serviço | URL |
 |---------|-----|
-| Front | http://localhost:5173 |
-| API | http://localhost:3000/api/v1 |
-| Swagger | http://localhost:3000/docs |
+| Front | http://127.0.0.1:5173 |
+| API | http://127.0.0.1:3000/api/v1 |
+| Swagger | http://127.0.0.1:3000/docs |
+
+Senha demo: `Senha@123` — `aluno@` / `professor@` / `empresa@` / `escola@` / `admin@` + `demo.meritcoin.local`
 
 ---
 
-## Contas demo
+## Deploy (Lab04S02)
 
-Senha: **`Senha@123`**
+Guia completo: [`docs/sprint4/s02/DEPLOY.md`](docs/sprint4/s02/DEPLOY.md)
 
-| Perfil | E-mail |
-|--------|--------|
-| Aluno | `aluno@demo.meritcoin.local` |
-| Professor | `professor@demo.meritcoin.local` |
-| Empresa | `empresa@demo.meritcoin.local` |
-| Escola | `escola@demo.meritcoin.local` |
-| Admin | `admin@demo.meritcoin.local` |
+Resumo:
+1. Postgres na Render/Neon → `DATABASE_URL`
+2. API: blueprint [`render.yaml`](render.yaml) ou Docker [`backend/Dockerfile`](backend/Dockerfile)
+3. Front: Vercel com root `frontend`, env `VITE_API_URL=https://<api>/api/v1`
+4. `CORS_ORIGIN` na API = URL da Vercel
 
----
-
-## Fluxos Sprint 3 (demo)
-
-1. **Professor** → `/app/carteira` → crédito 1.000 → envia moedas com motivo  
-2. **Aluno** → extrato → `/app/vantagens` → resgata → recebe cupom  
-3. **Empresa** → confirma cupom presencial  
-
-E-mails ficam no outbox sem SMTP; com `SMTP_*` no `.env`, o Nodemailer envia de verdade.
+Infra no repo: `render.yaml`, `backend/Dockerfile`, `frontend/vercel.json`
 
 ---
-
-## Estrutura
-
-```
-├── README.md
-├── docs/sprint1|sprint2|sprint3
-├── backend/   (NestJS + Prisma)
-└── frontend/  (React)
-```
 
 ## Identidade visual
 

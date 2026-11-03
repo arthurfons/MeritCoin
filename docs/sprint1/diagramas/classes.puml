@@ -1,152 +1,173 @@
 @startuml Diagrama_Classes_Moeda_Estudantil
 !theme plain
-title Sistema de Moeda Estudantil — Diagrama de Classes (Domínio MVC)
+title MeritCoin — Diagrama de Classes (atualizado Lab04S01)
 skinparam classAttributeIconSize 0
 skinparam linetype ortho
 
 abstract class Usuario {
-  - id: Long
-  - login: String
-  - senha: String
+  - id: UUID
   - email: String
-  --
-  + autenticar(login: String, senha: String): boolean
+  - passwordHash: String
+  - role: Role
+  - active: boolean
 }
 
-class Aluno {
-  - nome: String
+class StudentProfile {
+  - fullName: String
   - cpf: String
   - rg: String
-  - saldoMoedas: Double
+  - endereco: Endereco
+  - balance: int
   --
-  + resgatarVantagem(v: Vantagem): Resgate
-  + consultarExtrato(): List
+  + resgatarVantagem(v: Reward): Redemption
 }
 
-class Professor {
-  - nome: String
+class TeacherProfile {
+  - fullName: String
   - cpf: String
-  - departamento: String
-  - saldoMoedas: Double
+  - balance: int
   --
-  + enviarMoedas(a: Aluno, valor: Double, mensagem: String): TransacaoMoeda
-  + consultarExtrato(): List
-  + receberCreditoSemestral(valor: Double): void
+  + enviarMoedas(a: StudentProfile, valor: int, msg: String): CoinTransfer
 }
 
-class EmpresaParceira {
-  - nome: String
+class CompanyProfile {
+  - tradeName: String
   - cnpj: String
   --
-  + cadastrarVantagem(descricao: String, fotoUrl: String, custo: Double): Vantagem
-  + atualizarVantagem(v: Vantagem): void
-  + removerVantagem(v: Vantagem): void
+  + cadastrarVantagem(...): Reward
 }
 
 class Endereco {
-  - logradouro: String
-  - numero: String
-  - complemento: String
-  - bairro: String
-  - cidade: String
-  - estado: String
-  - cep: String
+  - street: String
+  - number: String
+  - complement: String
+  - district: String
+  - city: String
+  - state: String
+  - zipCode: String
 }
 
-class InstituicaoEnsino {
-  - id: Long
-  - nome: String
+class Institution {
+  - id: UUID
+  - name: String
 }
 
-class Curso {
-  - id: Long
-  - nome: String
+class Course {
+  - id: UUID
+  - name: String
 }
 
-class Vantagem {
-  - id: Long
-  - descricao: String
-  - fotoUrl: String
-  - custoMoedas: Double
-  - ativa: boolean
+class Department {
+  - id: UUID
+  - name: String
 }
 
-class TransacaoMoeda {
-  - id: Long
-  - valor: Double
-  - mensagem: String
-  - dataHora: LocalDateTime
+class Reward {
+  - title: String
+  - description: String
+  - imageUrl: String
+  - costCoins: int
+  - active: boolean
 }
 
-class Resgate {
-  - id: Long
-  - codigoCupom: String
-  - dataHora: LocalDateTime
-  - valorDebitado: Double
+class CoinTransfer {
+  - amount: int
+  - message: String
+  - createdAt: DateTime
 }
 
-class CreditoSemestral {
-  - id: Long
-  - semestre: String
-  - valor: Double
-  - dataCredito: LocalDateTime
+class WalletTransaction {
+  - type: WalletTxType
+  - amount: int
+  - balanceAfter: int
+  - description: String
 }
 
-class ServicoAutenticacao {
-  + login(login: String, senha: String): Usuario
-  + logout(): void
+class Redemption {
+  - couponCode: String
+  - costCoins: int
+  - status: CouponStatus
 }
 
-class ServicoMoeda {
-  + enviarMoedas(p: Professor, a: Aluno, valor: Double, msg: String): TransacaoMoeda
-  + creditarSemestre(p: Professor, valor: Double): CreditoSemestral
+class TeacherSemesterCredit {
+  - semester: String
+  - amount: int
 }
 
-class ServicoResgate {
-  + resgatar(a: Aluno, v: Vantagem): Resgate
-  + gerarCodigoCupom(): String
+class EmailOutbox {
+  - toEmail: String
+  - subject: String
+  - htmlBody: String
+  - status: EmailOutboxStatus
 }
 
-class ServicoNotificacao {
-  + notificarRecebimento(a: Aluno, t: TransacaoMoeda): void
-  + notificarResgateAluno(a: Aluno, r: Resgate): void
-  + notificarResgateEmpresa(e: EmpresaParceira, r: Resgate): void
+class Notification {
+  - title: String
+  - body: String
+  - read: boolean
 }
 
-Usuario <|-- Aluno
-Usuario <|-- Professor
-Usuario <|-- EmpresaParceira
+class AuthService {
+  + login()
+  + registerStudent()
+  + registerCompany()
+}
 
-Aluno "1" --> "1" Endereco : possui
-Aluno "*" --> "1" InstituicaoEnsino : estuda_em
-Aluno "*" --> "1" Curso : cursa
-Professor "*" --> "1" InstituicaoEnsino : vinculado_a
-EmpresaParceira "1" --> "*" Vantagem : oferece
+class WalletsService {
+  + ensureSemesterCredit()
+  + transfer()
+  + myStatement()
+}
 
-TransacaoMoeda "*" --> "1" Professor : enviada_por
-TransacaoMoeda "*" --> "1" Aluno : recebida_por
-Resgate "*" --> "1" Aluno : realizado_por
-Resgate "*" --> "1" Vantagem : referente_a
-CreditoSemestral "*" --> "1" Professor : creditado_a
+class RewardsService {
+  + create()
+  + redeem()
+  + confirmCoupon()
+}
 
-ServicoAutenticacao ..> Usuario
-ServicoMoeda ..> Professor
-ServicoMoeda ..> Aluno
-ServicoMoeda ..> TransacaoMoeda
-ServicoMoeda ..> ServicoNotificacao
-ServicoResgate ..> Aluno
-ServicoResgate ..> Vantagem
-ServicoResgate ..> Resgate
-ServicoResgate ..> ServicoNotificacao
+class EmailService {
+  + enqueue()
+  + flushOne()
+}
 
-note right of ServicoMoeda
-  Valida saldo do professor
-  e mensagem obrigatória
+Usuario <|-- StudentProfile
+Usuario <|-- TeacherProfile
+Usuario <|-- CompanyProfile
+
+StudentProfile *--> Endereco
+StudentProfile --> Institution
+StudentProfile --> Course
+TeacherProfile --> Institution
+TeacherProfile --> Department
+CompanyProfile --> Reward
+
+CoinTransfer --> TeacherProfile
+CoinTransfer --> StudentProfile
+WalletTransaction --> TeacherProfile
+WalletTransaction --> StudentProfile
+Redemption --> StudentProfile
+Redemption --> Reward
+TeacherSemesterCredit --> TeacherProfile
+Notification --> Usuario
+EmailOutbox --> Usuario
+
+AuthService ..> Usuario
+WalletsService ..> TeacherProfile
+WalletsService ..> StudentProfile
+WalletsService ..> CoinTransfer
+WalletsService ..> EmailService
+RewardsService ..> Reward
+RewardsService ..> Redemption
+RewardsService ..> EmailService
+
+note right of WalletsService
+  Implementação NestJS:
+  backend/src/wallets
 end note
 
-note right of ServicoResgate
-  Valida saldo do aluno,
-  debita moedas e gera cupom
+note right of RewardsService
+  Implementação NestJS:
+  backend/src/rewards
 end note
 
 @enduml

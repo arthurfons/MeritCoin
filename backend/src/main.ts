@@ -21,8 +21,8 @@ async function bootstrap() {
 
   const swagger = new DocumentBuilder()
     .setTitle('MeritCoin API')
-    .setDescription('Sistema de Moeda Estudantil — Sprint 2')
-    .setVersion('1.0')
+    .setDescription('Sistema de Moeda Estudantil — Lab03/Lab04 (MeritCoin)')
+    .setVersion('2.0')
     .addBearerAuth()
     .build();
   SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, swagger));

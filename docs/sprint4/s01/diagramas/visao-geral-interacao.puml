@@ -1,0 +1,47 @@
+@startuml Visao_Geral_Interacao
+!theme plain
+title Diagrama de Visão Geral de Interação — MeritCoin (Lab04S01)
+skinparam shadowing false
+
+|Aluno|
+start
+:SQ-02 Cadastro de Aluno;
+:SQ-01 Autenticação;
+
+|Professor|
+:SQ-01 Autenticação;
+:SQ-03 Crédito Semestral (1.000);
+
+if (Possui saldo e aluno válido?) then (sim)
+  :SQ-04 Transferência + mensagem;
+  :SQ-05 Extrato (professor);
+else (não)
+  :Corrige dados / aguarda crédito;
+  stop
+endif
+
+|Aluno|
+:SQ-05 Extrato (aluno)\n(vê recebimento);
+
+|Empresa|
+:SQ-01 Autenticação;
+:SQ-06 Cadastro de Vantagem;
+
+|Aluno|
+if (Saldo >= custo da vantagem?) then (sim)
+  :SQ-07 Resgate + cupom + e-mails;
+else (não)
+  :Acumula moedas / missões extras;
+  stop
+endif
+
+|Empresa|
+:Confirma cupom presencial\n(POST /redemptions/confirm);
+
+stop
+
+legend right
+  Cada atividade referencia um Diagrama de Sequência (SQ-0x)
+  em docs/sprint4/s01/diagramas/
+endlegend
+@enduml

@@ -1,0 +1,39 @@
+@startuml SQ07_Resgate
+!theme plain
+title SQ-07 Resgate de Vantagem + Cupom + E-mails
+skinparam responseMessageBelowArrow true
+
+actor Aluno
+participant "RewardsPage" as UI
+participant "RewardsController" as C
+participant "RewardsService" as S
+participant "EmailService" as E
+participant "PrismaService" as P
+database PostgreSQL as DB
+
+Aluno -> UI: Resgatar vantagem
+UI -> C: POST /rewards/:id/redeem
+C -> S: redeem(rewardId, actor)
+S -> P: student + reward(+company)
+alt saldo insuficiente / vantagem inativa
+  S --> C: 400/404
+else ok
+  S -> S: gera couponCode
+  S -> P: $transaction
+  P -> DB: decrement student.balance
+  P -> DB: INSERT Redemption ATIVO
+  P -> DB: INSERT WalletTransaction REDEMPTION
+  P -> DB: INSERT Notification
+  S -> E: enqueue(email aluno com cupom)
+  S -> E: enqueue(email empresa com cupom)
+  E -> P: INSERT EmailOutbox (x2)
+  S --> C: redemption
+end
+C --> UI: cupom
+UI --> Aluno: código exibido
+
+note right of E
+  Ambos os e-mails incluem
+  o mesmo código de conferência
+end note
+@enduml

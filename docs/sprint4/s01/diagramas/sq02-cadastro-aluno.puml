@@ -1,0 +1,31 @@
+@startuml SQ02_CadastroAluno
+!theme plain
+title SQ-02 Cadastro de Aluno (auto-cadastro)
+skinparam responseMessageBelowArrow true
+
+actor Aluno
+participant "RegisterStudentPage" as UI
+participant "AuthController" as C
+participant "AuthService" as S
+participant "PrismaService" as P
+database PostgreSQL as DB
+
+Aluno -> UI: preenche dados + instituição/curso
+UI -> C: POST /auth/register/student
+C -> S: registerStudent(dto)
+S -> P: course.findFirst(id, institutionId)
+P -> DB: SELECT Course
+DB --> P: course
+alt curso inválido
+  S --> C: 404
+else ok
+  S -> S: bcrypt.hash(password)
+  S -> P: user.create + student.create
+  P -> DB: INSERT User, StudentProfile
+  DB --> P: user
+  S -> S: jwt.sign(ALUNO)
+  S --> C: { accessToken, user }
+  C --> UI: 201/200
+  UI --> Aluno: sessão /app
+end
+@enduml

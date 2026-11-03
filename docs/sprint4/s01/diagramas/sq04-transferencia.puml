@@ -1,0 +1,35 @@
+@startuml SQ04_Transferencia
+!theme plain
+title SQ-04 Transferência Professor → Aluno
+skinparam responseMessageBelowArrow true
+
+actor Professor
+participant "WalletPage" as UI
+participant "WalletsController" as C
+participant "WalletsService" as S
+participant "EmailService" as E
+participant "PrismaService" as P
+database PostgreSQL as DB
+
+Professor -> UI: alunoId, amount, message
+UI -> C: POST /wallets/transfer
+C -> S: transfer(dto, actor)
+S -> S: ensureSemesterCredit(actor)
+S -> P: student + teacher (mesma instituição)
+alt saldo insuficiente ou mensagem vazia
+  S --> C: 400
+else ok
+  S -> P: $transaction
+  P -> DB: decrement teacher.balance
+  P -> DB: increment student.balance
+  P -> DB: INSERT CoinTransfer
+  P -> DB: INSERT WalletTransaction OUT/IN
+  P -> DB: INSERT Notification
+  S -> E: enqueue(email aluno)
+  E -> P: INSERT EmailOutbox
+  E -> E: flushOne (SMTP se configurado)
+  S --> C: transfer + balances
+end
+C --> UI: sucesso
+UI --> Professor: extrato atualizado
+@enduml

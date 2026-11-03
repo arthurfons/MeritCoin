@@ -1,88 +1,72 @@
 @startuml Diagrama_Componentes_Moeda_Estudantil
 !theme plain
-title Sistema de Moeda Estudantil — Diagrama de Componentes (MVC)
+title MeritCoin — Diagrama de Componentes MVC (Lab04S01)
 skinparam componentStyle rectangle
 
 actor "Usuário\n(Aluno / Professor / Empresa)" as User
 
-package "Camada de Apresentação (View)" {
-  [Views Aluno] as VAluno
-  [Views Professor] as VProfessor
-  [Views Empresa] as VEmpresa
-  [Views Autenticação] as VAuth
+package "View — React/Vite SPA" {
+  [LoginPage / Register*] as VAuth
+  [WalletPage] as VWallet
+  [RewardsPage] as VRewards
+  [StudentsPage / Dashboard] as VAdmin
 }
 
-package "Camada de Controle (Controller)" {
+package "Controller — NestJS /api/v1" {
   [AuthController] as CAuth
-  [AlunoController] as CAluno
-  [ProfessorController] as CProfessor
-  [EmpresaController] as CEmpresa
-  [VantagemController] as CVantagem
-  [ResgateController] as CResgate
-  [ExtratoController] as CExtrato
+  [StudentsController] as CStudents
+  [CompaniesController] as CCompanies
+  [WalletsController] as CWallets
+  [RewardsController] as CRewards
 }
 
-package "Camada de Negócio (Model)" {
-  [ServicoAutenticacao] as SAuth
-  [ServicoMoeda] as SMoeda
-  [ServicoResgate] as SResgate
-  [ServicoNotificacao] as SNotif
-  [Entidades de Domínio] as Dominio
+package "Model / Services" {
+  [AuthService] as SAuth
+  [WalletsService] as SWallets
+  [RewardsService] as SRewards
+  [StudentsService] as SStudents
+  [EmailService] as SEmail
 }
 
-package "Camada de Persistência" {
-  [DAO / Repositórios ORM] as DAO
-  database "Banco de Dados\nRelacional" as BD
+package "Persistência ORM" {
+  [PrismaService] as Prisma
+  database "PostgreSQL" as BD
 }
 
-cloud "Serviços Externos" {
-  [Servidor SMTP\n(E-mail)] as Email
+cloud "Externo" {
+  [SMTP opcional] as SMTP
 }
 
-User --> VAluno
-User --> VProfessor
-User --> VEmpresa
 User --> VAuth
+User --> VWallet
+User --> VRewards
+User --> VAdmin
 
 VAuth --> CAuth
-VAluno --> CAluno
-VAluno --> CResgate
-VAluno --> CExtrato
-VProfessor --> CProfessor
-VProfessor --> CExtrato
-VEmpresa --> CEmpresa
-VEmpresa --> CVantagem
+VWallet --> CWallets
+VRewards --> CRewards
+VAdmin --> CStudents
+VAdmin --> CCompanies
 
 CAuth --> SAuth
-CAluno --> Dominio
-CEmpresa --> Dominio
-CVantagem --> Dominio
-CProfessor --> SMoeda
-CResgate --> SResgate
-CExtrato --> SMoeda
-CExtrato --> SResgate
+CWallets --> SWallets
+CRewards --> SRewards
+CStudents --> SStudents
+CCompanies --> SStudents
 
-SAuth --> Dominio
-SMoeda --> Dominio
-SResgate --> Dominio
-SMoeda --> SNotif
-SResgate --> SNotif
+SWallets --> SEmail
+SRewards --> SEmail
+SAuth --> Prisma
+SWallets --> Prisma
+SRewards --> Prisma
+SStudents --> Prisma
+SEmail --> Prisma
+Prisma --> BD
+SEmail --> SMTP
 
-SAuth --> DAO
-SMoeda --> DAO
-SResgate --> DAO
-Dominio --> DAO
-DAO --> BD
-SNotif --> Email
-
-note bottom of DAO
-  Estratégia (ORM ou DAO)
-  definida na Sprint 2
-end note
-
-note right of SNotif
-  UC12: e-mail ao aluno (recebimento)
-  UC13: e-mails aluno + empresa (resgate)
+note bottom of Prisma
+  ORM Prisma = estratégia
+  de acesso ao BD (Lab03S02)
 end note
 
 @enduml

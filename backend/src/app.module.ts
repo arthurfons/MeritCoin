@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
+import { CommonModule } from './common/common.module';
 import { CompaniesModule } from './companies/companies.module';
 import { EmailModule } from './email/email.module';
 import { InstitutionsModule } from './institutions/institutions.module';
@@ -16,6 +17,7 @@ import { WalletsModule } from './wallets/wallets.module';
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     PrismaModule,
     EmailModule,
+    CommonModule,
     AuthModule,
     StudentsModule,
     CompaniesModule,
