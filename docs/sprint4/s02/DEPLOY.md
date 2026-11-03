@@ -6,11 +6,11 @@ Arquitetura alvo: **Frontend Vercel** + **API Render** + **PostgreSQL Render/Neo
 
 | Serviço | URL |
 |---------|-----|
-| Frontend (Vercel) | _preencher após deploy_ → `https://____.vercel.app` |
-| API (Render) | _preencher após deploy_ → `https://____.onrender.com` |
-| Swagger | `https://____.onrender.com/docs` |
+| Frontend (Vercel) | _rodar `npx vercel login` + checklist em [`scripts/cloud-deploy.md`](../../../scripts/cloud-deploy.md)_ |
+| API (Render) | _Blueprint [`render.yaml`](../../../render.yaml) no dashboard Render_ |
+| Swagger | `https://<api>.onrender.com/docs` |
 
-> Após o primeiro deploy, atualize esta tabela e o README.
+> Infra no GitHub já está pronta. O deploy cloud exige login único na sua conta Vercel/Render (CLI não autenticada nesta máquina). Após o deploy, atualize esta tabela e o README.
 
 ## 1) Banco PostgreSQL
 

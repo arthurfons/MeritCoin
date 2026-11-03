@@ -61,9 +61,9 @@ Ver detalhe em [GRASP.md](GRASP.md). Resumo:
 1. Fork → 3 branches → 3 PRs  
 2. Cole aqui os links:
 
-- PR1: _link_
-- PR2: _link_
-- PR3: _link_
+- PR1 (abrir): https://github.com/arthurfons/MeritCoin/compare/main...grasp/semester-expert?quick_pull=1
+- PR2 (abrir): https://github.com/arthurfons/MeritCoin/compare/main...grasp/coupon-expert?quick_pull=1
+- PR3 (abrir): https://github.com/arthurfons/MeritCoin/compare/main...grasp/mail-indirection?quick_pull=1
 
 Os proprietários **não precisam aceitar** (enunciado).
 

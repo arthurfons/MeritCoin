@@ -23,6 +23,16 @@ Aplicadas no repositório MeritCoin (também servem de modelo para PRs no projet
 
 **Por quê:** reduz acoplamento aos canais (e-mail/in-app); facilita trocar SMTP ou adicionar push depois.
 
+## PRs no MeritCoin (Lab04S03 — evidência)
+
+Branches já publicadas. Abrir o PR em 1 clique:
+
+1. https://github.com/arthurfons/MeritCoin/compare/main...grasp/semester-expert?quick_pull=1  
+2. https://github.com/arthurfons/MeritCoin/compare/main...grasp/coupon-expert?quick_pull=1  
+3. https://github.com/arthurfons/MeritCoin/compare/main...grasp/mail-indirection?quick_pull=1  
+
+(Ou: `gh auth login` + `gh pr create` a partir dessas branches.)
+
 ## Como abrir PRs no projeto da turma
 
 1. Fork do repo deles  
