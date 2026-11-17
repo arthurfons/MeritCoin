@@ -37,7 +37,9 @@ export function WalletPage() {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<TransferForm>({ resolver: zodResolver(transferSchema) });
+  } = useForm<z.input<typeof transferSchema>, unknown, TransferForm>({
+    resolver: zodResolver(transferSchema),
+  });
 
   const credit = useMutation({
     mutationFn: api.semesterCredit,
