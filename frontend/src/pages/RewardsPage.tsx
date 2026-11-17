@@ -45,7 +45,9 @@ export function RewardsPage() {
     handleSubmit,
     reset,
     formState: { isSubmitting },
-  } = useForm<RewardForm>({ resolver: zodResolver(rewardSchema) });
+  } = useForm<z.input<typeof rewardSchema>, unknown, RewardForm>({
+    resolver: zodResolver(rewardSchema),
+  });
 
   const create = useMutation({
     mutationFn: api.createReward,

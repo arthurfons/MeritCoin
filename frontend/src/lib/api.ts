@@ -187,7 +187,9 @@ export const api = {
   deactivateReward: (id: string) =>
     request(`/rewards/${id}`, { method: 'DELETE' }),
   redeemReward: (id: string) =>
-    request(`/rewards/${id}/redeem`, { method: 'POST' }),
+    request<{ couponCode?: string }>(`/rewards/${id}/redeem`, {
+      method: 'POST',
+    }),
   listRedemptions: () =>
     request<Array<Record<string, unknown>>>('/redemptions'),
   confirmCoupon: (couponCode: string) =>
