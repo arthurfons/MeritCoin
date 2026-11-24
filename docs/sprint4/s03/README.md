@@ -1,15 +1,12 @@
 # Lab04S03 — Análise crítica + GRASP
 
+Projeto analisado: https://github.com/BernardoApl/Sistema-de-Moeda-Estudantil (commit `8a4eca7`).
+
 | Item | Arquivo |
 |------|---------|
 | Relatório | [RELATORIO-ANALISE-CRITICA.md](RELATORIO-ANALISE-CRITICA.md) |
 | GRASP before/after | [GRASP.md](GRASP.md) |
-| Slides | [APRESENTACAO.md](APRESENTACAO.md) |
+| Roteiro de apresentação | [APRESENTACAO.md](APRESENTACAO.md) |
+| Patches | [patches/](patches/) |
 
-## Passos obrigatórios com o projeto da turma
-
-1. Receber URL do GitHub do grupo  
-2. Fork + seguir README (anotar atritos)  
-3. Completar seções 2–6 do relatório  
-4. Abrir 3 PRs GRASP no fork/repo deles  
-5. Colar links no relatório + exportar PDF para o ZIP Moodle
+Os 26 testes do projeto analisado passaram em cada uma das três refatorações. O fork para abrir os pull requests no repositório deles devolveu HTTP 403 a partir deste ambiente. O relatório traz o comando para publicá-los com uma conta que possa criar o fork.
