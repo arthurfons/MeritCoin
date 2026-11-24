@@ -1,0 +1,40 @@
+diff --git a/Entrega Sprint 3/sistema/notificador.py b/Entrega Sprint 3/sistema/notificador.py
+new file mode 100644
+index 0000000..d09d412
+--- /dev/null
++++ b/Entrega Sprint 3/sistema/notificador.py	
+@@ -0,0 +1,13 @@
++"""Indirection: a caixa de notificações fica atrás de uma fachada."""
++from models import db
++
++
++class Notificador:
++    def notificar(self, conta, assunto, mensagem):
++        db().execute(
++            'INSERT INTO notificacoes(conta_id,destinatario,assunto,mensagem) VALUES(?,?,?,?)',
++            (conta['id'], conta['email'], assunto, mensagem),
++        )
++
++
++notificador = Notificador()
+diff --git a/Entrega Sprint 3/sistema/services.py b/Entrega Sprint 3/sistema/services.py
+index 750e579..fceec01 100644
+--- a/Entrega Sprint 3/sistema/services.py	
++++ b/Entrega Sprint 3/sistema/services.py	
+@@ -4,6 +4,7 @@ import secrets
+ import sqlite3
+ from werkzeug.security import generate_password_hash
+ from models import db, ContaDAO
++from notificador import notificador
+ 
+ 
+ def documento_valido(numero, perfil):
+@@ -93,7 +94,7 @@ def cadastrar_professor(nome, email, cpf, departamento, instituicao, senha):
+ 
+ 
+ def notificar(conta, assunto, mensagem):
+-    db().execute('INSERT INTO notificacoes(conta_id,destinatario,assunto,mensagem) VALUES(?,?,?,?)', (conta['id'], conta['email'], assunto, mensagem))
++    notificador.notificar(conta, assunto, mensagem)
+ 
+ 
+ def creditar_semestre(semestre):

@@ -1,0 +1,35 @@
+diff --git a/Entrega Sprint 3/sistema/cupom.py b/Entrega Sprint 3/sistema/cupom.py
+new file mode 100644
+index 0000000..a3bf680
+--- /dev/null
++++ b/Entrega Sprint 3/sistema/cupom.py	
+@@ -0,0 +1,6 @@
++"""Information Expert: o formato do código de cupom fica isolado do resgate."""
++import secrets
++
++
++def gerar_codigo_cupom():
++    return secrets.token_hex(12).upper()
+diff --git a/Entrega Sprint 3/sistema/services.py b/Entrega Sprint 3/sistema/services.py
+index 750e579..5663e56 100644
+--- a/Entrega Sprint 3/sistema/services.py	
++++ b/Entrega Sprint 3/sistema/services.py	
+@@ -1,8 +1,8 @@
+ """Regras do domínio. Saldos, histórico e notificações são gravados atomicamente."""
+ import re
+-import secrets
+ import sqlite3
+ from werkzeug.security import generate_password_hash
++from cupom import gerar_codigo_cupom
+ from models import db, ContaDAO
+ 
+ 
+@@ -153,7 +153,7 @@ def resgatar(aluno_id, vantagem_id):
+             raise ValueError('Aluno ou vantagem inválido.')
+         if aluno['saldo'] < vantagem['custo']:
+             raise ValueError('Saldo insuficiente.')
+-        codigo = secrets.token_hex(12).upper()
++        codigo = gerar_codigo_cupom()
+         db().execute('UPDATE contas SET saldo=saldo-? WHERE id=?', (vantagem['custo'],aluno_id))
+         db().execute('INSERT INTO resgates(aluno_id,vantagem_id,valor,codigo) VALUES(?,?,?,?)', (aluno_id,vantagem_id,vantagem['custo'],codigo))
+         mensagem = f'Cupom {codigo}. Vantagem: {vantagem["descricao"]}. Aluno: {aluno["nome"]}. Valor: {vantagem["custo"]} moedas.'

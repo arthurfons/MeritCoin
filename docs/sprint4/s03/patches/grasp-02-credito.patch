@@ -1,0 +1,50 @@
+diff --git a/Entrega Sprint 3/sistema/credito.py b/Entrega Sprint 3/sistema/credito.py
+new file mode 100644
+index 0000000..9ecf71c
+--- /dev/null
++++ b/Entrega Sprint 3/sistema/credito.py	
+@@ -0,0 +1,10 @@
++"""Information Expert: formato e valor do crédito semestral."""
++import re
++
++MOEDAS_POR_SEMESTRE = 1000
++
++
++def validar_semestre(semestre):
++    if not re.fullmatch(r'20\d{2}-[12]', semestre):
++        raise ValueError('Semestre deve seguir AAAA-1 ou AAAA-2.')
++    return semestre
+diff --git a/Entrega Sprint 3/sistema/services.py b/Entrega Sprint 3/sistema/services.py
+index 750e579..1b88d07 100644
+--- a/Entrega Sprint 3/sistema/services.py	
++++ b/Entrega Sprint 3/sistema/services.py	
+@@ -3,6 +3,7 @@ import re
+ import secrets
+ import sqlite3
+ from werkzeug.security import generate_password_hash
++from credito import MOEDAS_POR_SEMESTRE, validar_semestre
+ from models import db, ContaDAO
+ 
+ 
+@@ -97,15 +98,17 @@ def notificar(conta, assunto, mensagem):
+ 
+ 
+ def creditar_semestre(semestre):
+-    if not re.fullmatch(r'20\d{2}-[12]', semestre):
+-        raise ValueError('Semestre deve seguir AAAA-1 ou AAAA-2.')
++    validar_semestre(semestre)
+     count = 0
+     with db():
+         db().execute('BEGIN IMMEDIATE')
+         for professor in db().execute("SELECT id FROM contas WHERE perfil='professor' AND ativo=1").fetchall():
+-            result = db().execute('INSERT OR IGNORE INTO creditos(professor_id,semestre) VALUES(?,?)', (professor['id'], semestre))
++            result = db().execute(
++                'INSERT OR IGNORE INTO creditos(professor_id,semestre,valor) VALUES(?,?,?)',
++                (professor['id'], semestre, MOEDAS_POR_SEMESTRE),
++            )
+             if result.rowcount:
+-                db().execute('UPDATE contas SET saldo=saldo+1000 WHERE id=?', (professor['id'],))
++                db().execute('UPDATE contas SET saldo=saldo+? WHERE id=?', (MOEDAS_POR_SEMESTRE, professor['id']))
+                 count += 1
+     return count
+ 
