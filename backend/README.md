@@ -10,4 +10,6 @@ npx prisma db seed
 npm run start:dev
 ```
 
+Produção: https://meritcoin-api.onrender.com/api/v1
+
 Instruções completas: [README na raiz](../README.md).

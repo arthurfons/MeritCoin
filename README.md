@@ -71,21 +71,25 @@ Senha demo: `Senha@123` — `aluno@` / `professor@` / `empresa@` / `escola@` / `
 
 ---
 
-## Deploy (Lab04S02)
+## Em produção (Lab04S02)
 
-Guia completo: [`docs/sprint4/s02/DEPLOY.md`](docs/sprint4/s02/DEPLOY.md)
+| Serviço | URL |
+|---------|-----|
+| Site | https://merit-coin.vercel.app/ |
+| API | https://meritcoin-api.onrender.com/api/v1 |
+| Swagger | https://meritcoin-api.onrender.com/docs |
 
-Resumo:
-1. Postgres na Render/Neon → `DATABASE_URL`
-2. API: blueprint [`render.yaml`](render.yaml) ou Docker [`backend/Dockerfile`](backend/Dockerfile)
-3. Front: Vercel com root `frontend`, env `VITE_API_URL=https://<api>/api/v1`
-4. `CORS_ORIGIN` na API = URL da Vercel
+Senha demo: `Senha@123`. O primeiro acesso da API no plano gratuito pode levar cerca de um minuto.
 
-Infra no repo: `render.yaml`, `backend/Dockerfile`, `frontend/vercel.json`
+Como republicar e quais variáveis usar: [`docs/sprint4/s02/DEPLOY.md`](docs/sprint4/s02/DEPLOY.md).
+
+Infra: [`render.yaml`](render.yaml), [`backend/Dockerfile`](backend/Dockerfile), [`frontend/vercel.json`](frontend/vercel.json).
 
 ---
 
 ## Estrutura do repositório
+
+O índice da documentação está em [`docs/README.md`](docs/README.md).
 
 ```
 MeritCoin/
@@ -93,7 +97,7 @@ MeritCoin/
 ├── docker-compose.yml      # Postgres local
 ├── render.yaml             # Blueprint Render (Lab04S02)
 ├── backend/                # NestJS + Prisma
-├── frontend/               # React + Vite (+ vercel.json)
+├── frontend/               # React + Vite
 └── docs/
     ├── sprint1/            # UML Lab03S01
     ├── sprint2/            # MER + padrões Lab03S02

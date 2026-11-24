@@ -1,55 +1,54 @@
 # Deploy cloud — Lab04S02
 
-Arquitetura alvo: **Frontend Vercel** + **API Render** + **PostgreSQL Render/Neon**.
+Arquitetura: **frontend na Vercel** + **API e PostgreSQL na Render**.
 
 ## URLs de produção
 
 | Serviço | URL |
 |---------|-----|
-| Frontend (Vercel) | _rodar `npx vercel login` + checklist em [CLOUD-CHECKLIST.md](CLOUD-CHECKLIST.md)_ |
-| API (Render) | _Blueprint [`render.yaml`](../../../render.yaml) no dashboard Render_ |
-| Swagger | `https://<api>.onrender.com/docs` |
+| Frontend | https://merit-coin.vercel.app/ |
+| API | https://meritcoin-api.onrender.com/api/v1 |
+| Swagger | https://meritcoin-api.onrender.com/docs |
 
-> Infra no GitHub já está pronta. O deploy cloud exige login único na sua conta Vercel/Render (CLI não autenticada nesta máquina). Após o deploy, atualize esta tabela e o README.
+Senha dos usuários de demonstração: `Senha@123`.
 
-## 1) Banco PostgreSQL
+| Tipo | E-mail |
+|------|--------|
+| Aluno | `aluno@demo.meritcoin.local` |
+| Professor | `professor@demo.meritcoin.local` |
+| Empresa | `empresa@demo.meritcoin.local` |
+| Escola | `escola@demo.meritcoin.local` |
+| Admin | `admin@demo.meritcoin.local` |
 
-Opções: Render Postgres (free) **ou** [Neon](https://neon.tech) / Supabase.
+O container da API aplica a migration e o seed ao subir. O plano gratuito da Render não tem Shell.
 
-Copie a `DATABASE_URL` (com SSL se exigido).
+## Variáveis
 
-## 2) API no Render
+API (`meritcoin-api`):
 
-1. Conecte o repo `arthurfons/MeritCoin`
-2. Use o blueprint [`render.yaml`](../../../render.yaml) **ou** Web Service com Docker:
-   - Dockerfile: `backend/Dockerfile`
-   - Context: `backend`
-3. Env vars:
-   - `DATABASE_URL`
-   - `JWT_SECRET` (forte)
-   - `CORS_ORIGIN=https://SEU-APP.vercel.app`
-   - `PORT=3000`
-   - `SMTP_*` opcional
-4. Após o deploy: rode seed uma vez (Shell Render):
+- `DATABASE_URL` — vem do banco `meritcoin-db` no blueprint
+- `JWT_SECRET` — gerado pela Render
+- `CORS_ORIGIN` = `https://merit-coin.vercel.app`
+- `PORT` = `3000`
+- `SMTP_*` — vazio; sem SMTP o e-mail fica no outbox
 
-```bash
-npx prisma db seed
-```
+Frontend (projeto Vercel, raiz `frontend`):
 
-## 3) Frontend na Vercel
+- `VITE_API_URL` = `https://meritcoin-api.onrender.com/api/v1`
 
-1. Importar repo → root `frontend`
-2. Build: `npm run build` · Output: `dist`
-3. Env: `VITE_API_URL=https://SEU-API.onrender.com/api/v1`
-4. `vercel.json` já faz rewrite SPA
+## Republicar
 
-## 4) Smoke test produção
+1. API: blueprint [`render.yaml`](../../../render.yaml) ou Web Service Docker com [`backend/Dockerfile`](../../../backend/Dockerfile) e contexto `backend`.
+2. Frontend: importar o repositório com raiz `frontend`. Build `npm run build`, saída `dist`. O [`vercel.json`](../../../frontend/vercel.json) reescreve a SPA.
+3. `CORS_ORIGIN` na API tem de ser a URL exata do site, sem barra no final.
 
-1. Abrir front Vercel  
-2. Login `professor@demo.meritcoin.local` / `Senha@123`  
-3. Enviar moedas → login aluno → resgatar vantagem → empresa confirma cupom  
+## Conferência
 
-## Arquivos de infra no repo
+1. Abrir https://merit-coin.vercel.app/
+2. Entrar com `professor@demo.meritcoin.local` / `Senha@123`
+3. Enviar moedas, entrar como aluno, resgatar uma vantagem e conferir o cupom como empresa
+
+## Arquivos de infra
 
 - [`backend/Dockerfile`](../../../backend/Dockerfile)
 - [`render.yaml`](../../../render.yaml)
