@@ -1,5 +1,7 @@
 # Lab04S02 — Implantação e Nuvem
 
+Site: https://merit-coin.vercel.app/ · API: https://meritcoin-api.onrender.com/api/v1
+
 | Item | Arquivo |
 |------|---------|
 | Diagrama de Implantação | [diagramas/implantacao.puml](diagramas/implantacao.puml) |
